@@ -1,0 +1,7 @@
+11/14/2016	Added code to keep windows on screen
+			Updated toolbarwrapper
+			Updated for 1.2.1
+
+1/13/2017	Added code to diplay messages on screen
+			Added code to write dest file name to log file and put it on screen
+			Recompiled for 1.2.2
