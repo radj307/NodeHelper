@@ -1,5 +1,18 @@
-*.suo
-NodeHelper/obj/*
-NodeHelper/bin/*
-/NodeHelper.VC.db
-/*.zip
+# ==================================================
+# Ignore selected folders and file types from the git
+# repository.
+# ==================================================
+
+Source/obj/*
+
+*.db
+*.DB
+*.DS_Store
+*.ini
+*.INI
+*.lnk
+*.LNK
+*.pdb
+*.PDB
+*.userprefs
+*.USERPREFS

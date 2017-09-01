@@ -23,18 +23,14 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-
-// TODO: Change to your plugin's namespace here.
 namespace Utils
 {
-
-
-
 	/**********************************************************\
 	*          --- DO NOT EDIT BELOW THIS COMMENT ---          *
 	*                                                          *
@@ -430,7 +426,7 @@ namespace Utils
 	/// <summary>
 	/// A drawable that draws a popup menu.
 	/// </summary>
-	public partial class PopupMenuDrawable : IDrawable {
+	public class PopupMenuDrawable : IDrawable {
 		/// <summary>
 		/// Event handler that can be registered with to receive "any menu option clicked" events.
 		/// </summary>
@@ -443,13 +439,13 @@ namespace Utils
 			}
 		}
 
-		private object realPopupMenuDrawable;
-		private MethodInfo updateMethod;
-		private MethodInfo drawMethod;
-		private MethodInfo addOptionMethod;
-		private MethodInfo addSeparatorMethod;
-		private MethodInfo destroyMethod;
-		private EventInfo onAnyOptionClickedEvent;
+	    object realPopupMenuDrawable;
+		MethodInfo updateMethod;
+		MethodInfo drawMethod;
+		MethodInfo addOptionMethod;
+		MethodInfo addSeparatorMethod;
+		MethodInfo destroyMethod;
+		EventInfo onAnyOptionClickedEvent;
 
 		public PopupMenuDrawable() {
 			Type popupMenuDrawableType = ToolbarTypes.getType("Toolbar.PopupMenuDrawable");
@@ -522,12 +518,12 @@ namespace Utils
 		}
 	}
 
-	internal class Button : IButton {
-		private object realButton;
-		private ToolbarTypes types;
-		private Delegate realClickHandler;
-		private Delegate realMouseEnterHandler;
-		private Delegate realMouseLeaveHandler;
+	class Button : IButton {
+		object realButton;
+		ToolbarTypes types;
+		Delegate realClickHandler;
+		Delegate realMouseEnterHandler;
+		Delegate realMouseLeaveHandler;
 
 		internal Button(object realButton, ToolbarTypes types) {
 			this.realButton = realButton;
@@ -538,7 +534,7 @@ namespace Utils
 			realMouseLeaveHandler = attachEventHandler(types.button.onMouseLeaveEvent, "mouseLeft", realButton);
 		}
 
-		private Delegate attachEventHandler(EventInfo @event, string methodName, object realButton) {
+		Delegate attachEventHandler(EventInfo @event, string methodName, object realButton) {
 			MethodInfo method = GetType().GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance);
 			Delegate d = Delegate.CreateDelegate(@event.EventHandlerType, this, method);
 			@event.AddEventHandler(realButton, d);
@@ -603,7 +599,7 @@ namespace Utils
 				return visibility_;
 			}
 		}
-		private IVisibility visibility_;
+		IVisibility visibility_;
 
 		public bool EffectivelyVisible {
 			get {
@@ -645,11 +641,11 @@ namespace Utils
 				return drawable_;
 			}
 		}
-		private IDrawable drawable_;
+		IDrawable drawable_;
 
 		public event ClickHandler OnClick;
 
-		private void clicked(object realEvent) {
+		void clicked(object realEvent) {
 			if (OnClick != null) {
 				OnClick(new ClickEvent(realEvent, this));
 			}
@@ -657,7 +653,7 @@ namespace Utils
 
 		public event MouseEnterHandler OnMouseEnter;
 
-		private void mouseEntered(object realEvent) {
+		void mouseEntered(object realEvent) {
 			if (OnMouseEnter != null) {
 				OnMouseEnter(new MouseEnterEvent(this));
 			}
@@ -665,7 +661,7 @@ namespace Utils
 
 		public event MouseLeaveHandler OnMouseLeave;
 
-		private void mouseLeft(object realEvent) {
+		void mouseLeft(object realEvent) {
 			if (OnMouseLeave != null) {
 				OnMouseLeave(new MouseLeaveEvent(this));
 			}
@@ -710,7 +706,7 @@ namespace Utils
 		}
 	}
 
-	internal class ToolbarTypes {
+	class ToolbarTypes {
 		internal readonly Type iToolbarManagerType;
 		internal readonly Type functionVisibilityType;
 		internal readonly Type functionDrawableType;
@@ -752,7 +748,7 @@ namespace Utils
 		}
 	}
 
-	internal class ButtonTypes {
+	class ButtonTypes {
 		internal readonly Type iButtonType;
 		internal readonly PropertyInfo textProperty;
 		internal readonly PropertyInfo textColorProperty;
