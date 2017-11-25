@@ -43,15 +43,16 @@ namespace Utils
 	*          --- DO NOT EDIT BELOW THIS COMMENT ---          *
 	\**********************************************************/
 
-
-
 	/// <summary>
 	/// The global tool bar manager.
 	/// </summary>
-	public partial class ToolbarManager : IToolbarManager {
+
+	public partial class ToolbarManager : IToolbarManager
+	{
 		/// <summary>
 		/// Whether the Toolbar Plugin is available.
 		/// </summary>
+
 		public static bool ToolbarAvailable {
 			get {
 				if (toolbarAvailable == null) {

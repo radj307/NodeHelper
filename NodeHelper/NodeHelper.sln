@@ -1,7 +1,7 @@
 
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NodeHelper", "NodeHelper.csproj", "{C3AC9744-D00D-4132-97A2-93EC74D628F1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NodeHelper", "NodeHelper\NodeHelper.csproj", "{C3AC9744-D00D-4132-97A2-93EC74D628F1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

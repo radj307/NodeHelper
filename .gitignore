@@ -3,7 +3,8 @@
 # repository.
 # ==================================================
 
-Source/obj/*
+NodeHelper/Builds
+NodeHelper/References
 
 *.db
 *.DB
@@ -14,5 +15,3 @@ Source/obj/*
 *.LNK
 *.pdb
 *.PDB
-*.userprefs
-*.USERPREFS
