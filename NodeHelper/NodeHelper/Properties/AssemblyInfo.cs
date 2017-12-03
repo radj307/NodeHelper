@@ -4,11 +4,11 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle ("NodeHelper")]
-[assembly: AssemblyDescription ("Editor for KSP part attachment nodes")]
+[assembly: AssemblyDescription ("In-game part attachment node editor for KSP.")]
 [assembly: AssemblyConfiguration ("")]
 [assembly: AssemblyCompany ("Felbourn Industries")]
 [assembly: AssemblyProduct ("NodeHelper")]
-[assembly: AssemblyCopyright ("https://creativecommons.org/licenses/by-nc-sa/4.0")]
+[assembly: AssemblyCopyright ("Copyright © 2015 - 2015, Bob Fitch")]
 [assembly: AssemblyTrademark ("")]
 [assembly: AssemblyCulture ("")]
 [assembly: ComVisible (false)]
