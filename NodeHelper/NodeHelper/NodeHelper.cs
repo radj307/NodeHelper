@@ -5,80 +5,7 @@ using System.Linq;
 using System.Text;
 using KSP.UI.Screens;
 using UnityEngine;
-using Utils;
-
-namespace Utils
-{
-    public class Tuple<T1, T2>
-    {
-        public Tuple ()
-        {
-        }
-
-        public Tuple (T1 item1, T2 item2)
-        {
-            Item1 = item1;
-            Item2 = item2;
-        }
-
-        public T1 Item1
-        {
-            get;
-
-            set;
-        }
-
-        public T2 Item2
-        {
-            get;
-
-            set;
-        }
-    }
-
-    public static class OSD
-    {
-        public static void PostMessageLowerRightCorner (string text)
-        {
-            Debug.Log (text);
-        }
-
-        public static void PostMessageUpperCenter (string text, float shownFor = 3.7f)
-        {
-            Debug.Log (text);
-        }
-    }
-
-    public static class UI
-    {
-        public static GameObject CreatePrimitive (PrimitiveType type, Color color, Vector3 scale, bool isActive, bool hasCollider, bool hasRigidbody, bool hasRenderer = true, string name = "", string shader = "Diffuse")
-        {
-            GameObject obj = GameObject.CreatePrimitive (type);
-
-            var renderer = obj.GetComponent<Renderer>();
-
-            renderer.material.color = color;
-            obj.transform.localScale = scale;
-
-            obj.SetActive (isActive);
-
-            obj.name = name;
-
-            renderer.material.shader = Shader.Find (shader);
-
-            obj.layer = 1;
-
-            return obj;
-        }
-
-        public static Color GetColorFromRgb (byte r, byte g, byte b, byte a = 255)
-        {
-            var c = new Color(r / 255f, g / 255f, b / 255f, a / 255f);
-
-            return c;
-        }
-    }
-}
+using Utilities;
 
 namespace NodeHelper
 {
@@ -123,9 +50,11 @@ namespace NodeHelper
         bool _printingActive;
         bool _show;
         bool _showCreateMenu;
-        bool _stockToolbar;
-        bool _blizzyToolbar;
         bool _showOrientationPointer = true;
+
+        string ToolbarButtonTexture = "NodeHelper" + Path.AltDirectorySeparatorChar + "Textures" + Path.AltDirectorySeparatorChar + "icon_toolbar";
+
+        static ApplicationLauncherButton btnLauncher;
 
         float _stepWidth = 0.1f;
         float _planeRadius = 0.625f;
@@ -140,13 +69,13 @@ namespace NodeHelper
 
         int _cleanupCounter;
 
-        // Need to add code to make sure window isn't off - screen when loading options.
-        // Also need to make sure WindowPos isn't off - screen at start.
+        //  Need to add code to make sure window isn't off - screen when loading options.
+        //  Also need to make sure WindowPos isn't off - screen at start.
 
         Rect nodeListPos = new Rect (315, 100, 160, 40);
         Rect windowPos = new Rect (1375, 80, 160, 40);
         Rect nodeEditPos = new Rect (315, 470, 160, 40);
-        
+
         static Vector3 GetGoScaleForNode (AttachNode attachNode)
         {
             return Vector3.one * attachNode.radius * (attachNode.size > 0 ? attachNode.size : 0.2f);
@@ -189,9 +118,9 @@ namespace NodeHelper
             }
         }
 
-        void HandleWindow (ref Rect position, int id, string name, GUI.WindowFunction func)
+        void HandleWindow (ref Rect position, int id, string windowname, GUI.WindowFunction func)
         {
-            position = GUILayout.Window (GetType ().FullName.GetHashCode () + id, position, func, name, GUILayout.Width (200), GUILayout.Height (20));
+            position = GUILayout.Window (GetType ().FullName.GetHashCode () + id, position, func, windowname, GUILayout.Width (200), GUILayout.Height (20));
         }
 
         public void OnGUI ()
@@ -256,63 +185,75 @@ namespace NodeHelper
             }
         }
 
-        static ApplicationLauncherButton btnLauncher;
-
         public void Start ()
         {
-            _settings = GameDatabase.Instance.GetConfigNodes ("NodeHelper").FirstOrDefault ();
+            _settings = GameDatabase.Instance.GetConfigNodes ("NodeHelperSettings").FirstOrDefault ();
 
             if (_settings != null)
             {
-                if (!bool.TryParse(_settings.GetValue ("StockToolbar"), out _stockToolbar))
-                {
-                    _stockToolbar = true;
-                }
-
-                if (!bool.TryParse (_settings.GetValue ("BlizzyToolbar"), out _blizzyToolbar))
-                {
-                    _blizzyToolbar = true;
-                }
-
                 int coord;
 
-                if (int.TryParse(_settings.GetNode ("ListWindow").GetValue ("x"), out coord))
+                if (int.TryParse (_settings.GetNode ("ListWindow").GetValue ("x"), out coord))
                 {
                     nodeListPos.x = coord;
                 }
 
-                if (int.TryParse(_settings.GetNode ("ListWindow").GetValue ("y"), out coord))
+                if (int.TryParse (_settings.GetNode ("ListWindow").GetValue ("y"), out coord))
                 {
                     nodeListPos.y = coord;
                 }
 
-                if (int.TryParse(_settings.GetNode("PartWindow").GetValue("x"), out coord))
+                if (int.TryParse (_settings.GetNode ("PartWindow").GetValue ("x"), out coord))
+                {
                     windowPos.x = coord;
+                }
 
-                if (int.TryParse(_settings.GetNode("PartWindow").GetValue("y"), out coord))
+                if (int.TryParse (_settings.GetNode ("PartWindow").GetValue ("y"), out coord))
+                {
                     windowPos.y = coord;
+                }
 
-                if (int.TryParse(_settings.GetNode("NodeWindow").GetValue("x"), out coord))
+                if (int.TryParse (_settings.GetNode ("NodeWindow").GetValue ("x"), out coord))
+                {
                     nodeEditPos.x = coord;
+                }
 
-                if (int.TryParse(_settings.GetNode("NodeWindow").GetValue("y"), out coord))
+                if (int.TryParse (_settings.GetNode ("NodeWindow").GetValue ("y"), out coord))
+                {
                     nodeEditPos.y = coord;
+                }
+            }
 
-                if (!bool.TryParse(_settings.GetValue("OrientPointer"), out _showOrientationPointer))
-                    _showOrientationPointer = true;
+            bool UseBlizzyToolbar = HighLogic.CurrentGame.Parameters.CustomParams<NodeHelper>()._blizzyToolbar;
+
+            if (UseBlizzyToolbar.Equals (false))
+            {
+                if (btnLauncher == null)
+                {
+                    btnLauncher = ApplicationLauncher.Instance.AddModApplication (() => _show = !_show, () => _show = !_show, null, null, null, null, ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.SPH, GameDatabase.Instance.GetTexture (ToolbarButtonTexture, false));
+                }
             }
             else
             {
-                _stockToolbar = true;
-                _blizzyToolbar = true;
-            }
+                if (ToolbarManager.Instance == null)
+                {
+                    _nodeHelperButton = ToolbarManager.Instance.add ("NodeHelper", "NodeHelperButton");
 
-            if (_stockToolbar && btnLauncher == null)
-            {
-                btnLauncher = ApplicationLauncher.Instance.AddModApplication (() => _show = !_show, () => _show = !_show, null, null, null, null, ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.SPH, GameDatabase.Instance.GetTexture ("NodeHelper" + Path.AltDirectorySeparatorChar + "Textures" + Path.AltDirectorySeparatorChar + "icon_toolbar", false));
+                    _nodeHelperButton.TexturePath = ToolbarButtonTexture;
+                    _nodeHelperButton.ToolTip = "NodeHelper";
+
+                    _nodeHelperButton.Visibility = new GameScenesVisibility (GameScenes.EDITOR);
+
+                    _nodeHelperButton.OnClick += (e => _show = !_show);
+                }
+                else
+                {
+                    return;
+                }
             }
 
             GameEvents.onPartActionUICreate.Add (HandleActionMenuOpened);
+
             GameEvents.onPartActionUIDismiss.Add (HandleActionMenuClosed);
 
             _selectedPart = null;
@@ -327,8 +268,8 @@ namespace NodeHelper
             _planes = new GameObject[3];
 
             _createPlanes ();
- 
-            _orientationPointer = UI.CreatePrimitive (PrimitiveType.Cylinder, _orientColor, new Vector3 (0.01f, 0.15f, 0.01f), false, false, false, name: "Orientation Pointer", shader: TransShader);
+
+            _orientationPointer = UI.CreatePrimitive (PrimitiveType.Cylinder, _orientColor, new Vector3 (0.01f, 0.15f, 0.01f), false, "Orientation Pointer", TransShader);
 
             var vesselOverlays = (EditorVesselOverlays) FindObjectOfType (typeof (EditorVesselOverlays));
 
@@ -337,19 +278,6 @@ namespace NodeHelper
             _nodeMaterial.shader = Shader.Find (TransShader);
 
             _initialized = true;
-
-            if (ToolbarManager.Instance == null || !_blizzyToolbar)
-            {
-                return;
-            }
-
-            _nodeHelperButton = ToolbarManager.Instance.add ("NodeHelper", "NodeHelperButton");
-            _nodeHelperButton.TexturePath = "NodeHelper" + Path.AltDirectorySeparatorChar + "Textures" + Path.AltDirectorySeparatorChar + "icon_toolbar";
-            _nodeHelperButton.ToolTip = "NodeHelper";
-
-            _nodeHelperButton.Visibility = new GameScenesVisibility (GameScenes.EDITOR);
-
-            _nodeHelperButton.OnClick += (e => _show = !_show);
         }
 
         bool ShouldBeLocked ()
@@ -396,9 +324,7 @@ namespace NodeHelper
 
         public void Update ()
         {
-            var el = EditorLogic.fetch;
-
-            if (el == null)
+            if (EditorLogic.fetch == null)
             {
                 return;
             }
@@ -430,7 +356,7 @@ namespace NodeHelper
                     _cleanSelectedPartSetup ();
                 }
             }
-             
+
             if (!_initialized || !_show || _selectedPart == null)
             {
                 if (_selectedPart != null && !_show)
@@ -451,9 +377,10 @@ namespace NodeHelper
 
             _processPlanes ();
 
-            foreach (var mapping in _nodeMapping.Select(kv => new {node = kv.Key, go = kv.Value}))
+            foreach (var mapping in _nodeMapping.Select (kv => new {node = kv.Key, go = kv.Value}))
             {
                 var localPos = _selectedPart.transform.TransformPoint (mapping.node.position);
+
                 var goTrans = mapping.go.transform;
 
                 goTrans.position = localPos;
@@ -472,7 +399,7 @@ namespace NodeHelper
                 }
             }
         }
- 
+
         protected void NodeEditGui (int windowID)
         {
             var expandWidth = GUILayout.ExpandWidth (true);
@@ -480,10 +407,10 @@ namespace NodeHelper
             if (_selectedNode != null)
             {
                 if (GUILayout.Button ("Clear Selection", expandWidth))
-            	{
+                {
                     _selectedNode = null;
-            	}
-            
+                }
+
                 GUILayout.BeginVertical ("box");
 
                 GUILayout.BeginHorizontal ();
@@ -503,13 +430,13 @@ namespace NodeHelper
                 }
 
                 if (GUILayout.Button ("0.01"))
-                { 
+                {
                     _stepWidth = 0.01f;
                     _stepWidthString = "0.01";
                 }
 
                 if (GUILayout.Button ("0.001"))
-                { 
+                {
                     _stepWidth = 0.001f;
                     _stepWidthString = "0.001";
                 }
@@ -631,8 +558,10 @@ namespace NodeHelper
 
                 GUILayout.BeginHorizontal ();
 
-                if (GUILayout.Button("+X", expandWidth))
-                    _selectedNode.orientation = new Vector3(1f, 0f, 0f);
+                if (GUILayout.Button ("+X", expandWidth))
+                {
+                    _selectedNode.orientation = new Vector3 (1f, 0f, 0f);
+                }
 
                 if (GUILayout.Button ("+Y", expandWidth))
                 {
@@ -682,7 +611,7 @@ namespace NodeHelper
                 }
 
                 GUI.DragWindow ();
-        	}
+            }
         }
 
         Vector2 scrollPos = new Vector2 (0f, 0f);
@@ -772,9 +701,9 @@ namespace NodeHelper
             {
                 _showCreateMenu &= !GUILayout.Button ("Hide Node Creation");
 
-                GUILayout.Label("Note: New attachment nodes are not automatically saved with the craft file.", GUILayout.ExpandWidth(false));
+                GUILayout.Label ("Note: New attachment nodes are not automatically saved with the craft file.", GUILayout.ExpandWidth (false));
 
-                GUILayout.BeginHorizontal();
+                GUILayout.BeginHorizontal ();
 
                 GUILayout.Label("Add a node", expandWidth);
 
@@ -794,6 +723,7 @@ namespace NodeHelper
                 GUILayout.EndHorizontal ();
 
                 GUILayout.BeginHorizontal ();
+
                 GUILayout.Label ("Pos:", expandWidth);
 
                 _newNodePos = GUILayout.TextField (_newNodePos, GUILayout.Width (120));
@@ -893,7 +823,7 @@ namespace NodeHelper
 
             if (_selectedPart.srfAttachNode != null)
             {
-                retList.Add(_nodeToString (_selectedPart.srfAttachNode, string.Empty, false));
+                retList.Add (_nodeToString (_selectedPart.srfAttachNode, string.Empty, false));
             }
 
             return retList;
@@ -918,7 +848,7 @@ namespace NodeHelper
                     position = pos,
                     nodeType = AttachNode.NodeType.Stack,
                     size = 1,
-                    id = _findUniqueId(_newNodeName),
+                    id = _findUniqueId (_newNodeName),
                     attachMethod = AttachNodeMethod.FIXED_JOINT,
                     nodeTransform = _selectedPart.transform,
                     orientation = _selectedPart.transform.up
@@ -942,7 +872,7 @@ namespace NodeHelper
         {
             for (var i = 0; i < 3; i++)
             {
-                _planes[i] = UI.CreatePrimitive (PrimitiveType.Cube, _planeColor, new Vector3 (1f, 1f, 1f), false, false, false, name: "Helper Plane", shader: TransShader);
+                _planes[i] = UI.CreatePrimitive (PrimitiveType.Cube, _planeColor, new Vector3 (1f, 1f, 1f), false, "Helper Plane", TransShader);
             }
         }
 
@@ -959,7 +889,7 @@ namespace NodeHelper
 
             _selectedNode = null;
 
-            OSD.PostMessageUpperCenter ("NodeHelper: node deleted");
+            OSD.PostMessageUpperCenter ("NodeHelper: Attachment node deleted...");
         }
 
         string _findUniqueId (string newNodeName)
@@ -980,7 +910,7 @@ namespace NodeHelper
         /// Finds the precision of a float up to approx. 5 digits which is fine for this context.
         /// </summary>
         /// <param name="inNr"></param>
-        /// <returns>position of last signif. position after 0.
+        /// <returns>The position of last significant position after 0.
         /// </returns>
 
         static int _floatPrecision (float inNr)
@@ -1019,8 +949,10 @@ namespace NodeHelper
             {
                 return _nodeNameMapping[node];
             }
-
-            return "n.a.";
+            else
+            {
+                return "n.a.";
+            }
         }
 
         string _getSelPartAttRulesString ()
@@ -1196,6 +1128,7 @@ namespace NodeHelper
             try
             {
                 var normName = _normalizePartName (_selectedPart.name);
+
                 var cfg = GameDatabase.Instance.root.AllConfigs.Where (c => c.name == normName).Select (c => c).FirstOrDefault ();
 
                 if (cfg != null && !string.IsNullOrEmpty (cfg.url))
@@ -1264,19 +1197,29 @@ namespace NodeHelper
             var pr = _selectedPart.attachRules;
 
             if (arr[0] != tempArr[0])
+            {
                 pr.stack = !pr.stack;
+            }
 
             if (arr[1] != tempArr[1])
+            {
                 pr.srfAttach = !pr.srfAttach;
+            }
 
             if (arr[2] != tempArr[2])
+            {
                 pr.allowStack = !pr.allowStack;
+            }
 
             if (arr[3] != tempArr[3])
+            {
                 pr.allowSrfAttach = !pr.allowSrfAttach;
+            }
 
             if (arr[4] != tempArr[4])
+            {
                 pr.allowCollision = !pr.allowCollision;
+            }
         }
 
         void _processPlanes ()
@@ -1335,6 +1278,7 @@ namespace NodeHelper
                 }
 
                 pT.Rotate (rotVec);
+
                 plane.SetActive (true);
             }
         }
@@ -1373,11 +1317,11 @@ namespace NodeHelper
             {
                 var nPos = KSPUtil.ParseVector3 (_targetPos);
 
-                _setToPos(nPos);
+                _setToPos (nPos);
             }
             catch (Exception e)
             {
-                Debug.Log ("[NH]: Set to pos throw exception: " + e.Message);
+                Debug.Log ("[NH]: setToPos threw exception: " + e.Message);
 
                 OSD.PostMessageUpperCenter ("NodeHelper: Unable to set attachment node position, please check vector format!");
             }
@@ -1405,6 +1349,7 @@ namespace NodeHelper
             }
 
             _selectedPart.SetHighlightColor (Color.blue);
+
             _selectedPart.SetHighlight (true, false);
         }
 
@@ -1426,7 +1371,9 @@ namespace NodeHelper
                 var cnt = nameDic.Values.Count (v => v == attachNode.id);
 
                 if (cnt > 0)
+                {
                     n = n + "_" + (cnt + 1);
+                }
 
                 nameDic.Add (attachNode, n);
             }
@@ -1477,7 +1424,7 @@ namespace NodeHelper
 
                 var scale = GetGoScaleForNode (attachNode);
 
-                var go = UI.CreatePrimitive (PrimitiveType.Sphere, _nodeColor, scale, true, false, false, name:  "Helper Node", shader: TransShader);
+                var go = UI.CreatePrimitive (PrimitiveType.Sphere, _nodeColor, scale, true, "Helper Node", TransShader);
 
                 go.GetComponent<MeshRenderer>().material = _nodeMaterial;
 
