@@ -68,7 +68,7 @@ namespace Utilities
 
         public static Color GetColorFromRgb (byte r, byte g, byte b, byte a = 255)
         {
-            var c = new Color(r / 255f, g / 255f, b / 255f, a / 255f);
+            var c = new Color (r / 255f, g / 255f, b / 255f, a / 255f);
 
             return c;
         }

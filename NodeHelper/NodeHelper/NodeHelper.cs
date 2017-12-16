@@ -88,7 +88,7 @@ namespace NodeHelper
                 _selectedPart.SetHighlightDefault ();
             }
 
-            _clearMapping();
+            _clearMapping ();
         }
 
         void HandleActionMenuOpened (Part data)
@@ -222,6 +222,31 @@ namespace NodeHelper
                 {
                     nodeEditPos.y = coord;
                 }
+            }
+            else
+            {
+                string ConfigFilePath = KSPUtil.ApplicationRootPath + "GameData" + Path.AltDirectorySeparatorChar + "NodeHelper" + Path.AltDirectorySeparatorChar + "Configs" + Path.AltDirectorySeparatorChar + "NodeHelper_Settings.cfg";
+
+                var ConfigNodeSettings = new ConfigNode ();
+
+                var NodeHelperSettings = ConfigNodeSettings.AddNode ("NodeHelperSettings");
+
+                var ListWindowNode = NodeHelperSettings.AddNode ("ListWindow");
+
+                ListWindowNode.AddValue ("x", 100);
+                ListWindowNode.AddValue ("y", 100);
+
+                var NodeWindowNode = NodeHelperSettings.AddNode ("NodeWindow");
+
+                NodeWindowNode.AddValue ("x", 300);
+                NodeWindowNode.AddValue ("y", 300);
+
+                var PartWindowNode = NodeHelperSettings.AddNode ("PartWindow");
+
+                PartWindowNode.AddValue ("x", 200);
+                PartWindowNode.AddValue ("y", 200);
+
+                ConfigNodeSettings.Save (ConfigFilePath);
             }
 
             bool UseBlizzyToolbar = HighLogic.CurrentGame.Parameters.CustomParams<NodeHelper>()._blizzyToolbar;
@@ -670,7 +695,7 @@ namespace NodeHelper
 
             var tempArr = new bool[5];
 
-            Array.Copy(_selectedPartRules, tempArr, 5);
+            Array.Copy (_selectedPartRules, tempArr, 5);
 
             GUILayout.BeginHorizontal ();
 
@@ -705,7 +730,7 @@ namespace NodeHelper
 
                 GUILayout.BeginHorizontal ();
 
-                GUILayout.Label("Add a node", expandWidth);
+                GUILayout.Label ("Add a node", expandWidth);
 
                 if (GUILayout.Button ("Create"))
                 {
@@ -945,14 +970,7 @@ namespace NodeHelper
 
         string _getNodeName (AttachNode node)
         {
-            if (_nodeNameMapping.ContainsKey (node))
-            {
-                return _nodeNameMapping[node];
-            }
-            else
-            {
-                return "n.a.";
-            }
+            return (_nodeNameMapping.ContainsKey (node)) ? _nodeNameMapping[node] : string.Empty;
         }
 
         string _getSelPartAttRulesString ()
