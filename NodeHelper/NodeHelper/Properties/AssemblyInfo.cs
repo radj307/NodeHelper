@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration ("")]
 [assembly: AssemblyCompany ("Felbourn Industries")]
 [assembly: AssemblyProduct ("NodeHelper")]
-[assembly: AssemblyCopyright ("Copyright © 2015 - 2017, Bob Fitch")]
+[assembly: AssemblyCopyright ("Copyright © 2015 - 2018, Bob Fitch")]
 [assembly: AssemblyTrademark ("")]
 [assembly: AssemblyCulture ("")]
 [assembly: ComVisible (false)]

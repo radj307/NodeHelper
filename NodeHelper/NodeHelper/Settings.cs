@@ -1,4 +1,4 @@
-﻿namespace NodeHelper
+namespace NodeHelper
 {
     public class NodeHelper : GameParameters.CustomParameterNode
     {
