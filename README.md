@@ -1,5 +1,8 @@
 # NodeHelper
 
+![][NH:shield-version]
+![][NH:shield-license]
+
 **NodeHelper** is a plugin for **Kerbal Space Program (KSP)** that allows part attachment node editing in real time. You can also attach other parts to those nodes and check how it looks. Any attached parts can be moved along with the nodes.
 
 In order to move a node:
@@ -36,3 +39,5 @@ You should have received a copy of the license along with this work. If not, vis
 [NH:cc-license-link]:           https://creativecommons.org/licenses/by-nc-sa/4.0
 [NH:contributor-felbourn-link]: https://github.com/Felbourn
 [NH:original-forum-link]:       http://forum.kerbalspaceprogram.com/index.php?showtopic=87592
+[NH:shield-version]:            https://img.shields.io/badge/KSP%20Version-1.3.1.1891-red.svg
+[NH:shield-license]:            https://img.shields.io/badge/License-CC--BY--NC--SA%204.0-green.svg
