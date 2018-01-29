@@ -288,9 +288,9 @@ namespace NodeHelper
             _nodeNameMapping = new Dictionary<AttachNode, string>();
             _nodePosBackup = new Dictionary<AttachNode, Vector3>();
             _affectedParts = new HashSet<Part>();
-            _selectedPartRules = new bool[5];
-            _showPlanes = new bool[3];
-            _planes = new GameObject[3];
+            _selectedPartRules = new bool [5];
+            _showPlanes = new bool [3];
+            _planes = new GameObject [3];
 
             _createPlanes ();
 
@@ -693,22 +693,22 @@ namespace NodeHelper
 
             GUILayout.Label ("Attachment Rules: " + _getSelPartAttRulesString ());
 
-            var tempArr = new bool[5];
+            var tempArr = new bool [5];
 
             Array.Copy (_selectedPartRules, tempArr, 5);
 
             GUILayout.BeginHorizontal ();
 
-            tempArr[0] = GUILayout.Toggle (tempArr[0], "stack", "Button", expandWidth);
-            tempArr[1] = GUILayout.Toggle (tempArr[1], "srfAttach", "Button", expandWidth);
-            tempArr[2] = GUILayout.Toggle (tempArr[2], "allowStack", "Button", expandWidth);
+            tempArr [0] = GUILayout.Toggle (tempArr [0], "stack", "Button", expandWidth);
+            tempArr [1] = GUILayout.Toggle (tempArr [1], "srfAttach", "Button", expandWidth);
+            tempArr [2] = GUILayout.Toggle (tempArr [2], "allowStack", "Button", expandWidth);
 
             GUILayout.EndHorizontal ();
 
             GUILayout.BeginHorizontal ();
 
-            tempArr[3] = GUILayout.Toggle (tempArr[3], "allowSrfAttach", "Button", expandWidth);
-            tempArr[4] = GUILayout.Toggle (tempArr[4], "allowCollision", "Button", expandWidth);
+            tempArr [3] = GUILayout.Toggle (tempArr [3], "allowSrfAttach", "Button", expandWidth);
+            tempArr [4] = GUILayout.Toggle (tempArr [4], "allowCollision", "Button", expandWidth);
 
             _processAttachRules (tempArr);
 
@@ -764,9 +764,9 @@ namespace NodeHelper
 
             GUILayout.Label ("Normal planes", expandWidth);
 
-            _showPlanes[0] = GUILayout.Toggle (_showPlanes[0], "X", "Button");
-            _showPlanes[1] = GUILayout.Toggle (_showPlanes[1], "Y", "Button");
-            _showPlanes[2] = GUILayout.Toggle (_showPlanes[2], "Z", "Button");
+            _showPlanes [0] = GUILayout.Toggle (_showPlanes [0], "X", "Button");
+            _showPlanes [1] = GUILayout.Toggle (_showPlanes [1], "Y", "Button");
+            _showPlanes [2] = GUILayout.Toggle (_showPlanes [2], "Z", "Button");
 
             GUILayout.EndHorizontal ();
 
@@ -825,7 +825,7 @@ namespace NodeHelper
 
             for (var i = 0; i < 3; i++)
             {
-                _showPlanes[i] = false;
+                _showPlanes [i] = false;
 
                 _planes[i].SetActive (false);
             }
@@ -834,7 +834,7 @@ namespace NodeHelper
             {
                 _selectedPart = null;
                 _selectedNode = null;
-                _selectedPartRules = new bool[5];
+                _selectedPartRules = new bool [5];
             }
         }
 
@@ -897,7 +897,7 @@ namespace NodeHelper
         {
             for (var i = 0; i < 3; i++)
             {
-                _planes[i] = UI.CreatePrimitive (PrimitiveType.Cube, _planeColor, new Vector3 (1f, 1f, 1f), false, "Helper Plane", TransShader);
+                _planes [i] = UI.CreatePrimitive (PrimitiveType.Cube, _planeColor, new Vector3 (1f, 1f, 1f), false, "Helper Plane", TransShader);
             }
         }
 
@@ -960,7 +960,8 @@ namespace NodeHelper
             var formatString = "{0:F" + precision + "}";
             var trimmedString = string.Format (formatString, inputNumber).TrimEnd ('0');
 
-            if (trimmedString[trimmedString.Length - 1] == '.' || trimmedString[trimmedString.Length - 1] == ',')
+            if (trimmedString [trimmedString.Length - 1] == '.' || trimmedString [trimmedString.Length - 1] == ',')
+            if (trimmedString [trimmedString.Length - 1] == '.' || trimmedString [trimmedString.Length - 1] == ',')
             {
                 trimmedString = trimmedString + "0";
             }
@@ -970,7 +971,7 @@ namespace NodeHelper
 
         string _getNodeName (AttachNode node)
         {
-            return (_nodeNameMapping.ContainsKey (node)) ? _nodeNameMapping[node] : string.Empty;
+            return (_nodeNameMapping.ContainsKey (node)) ? _nodeNameMapping [node] : string.Empty;
         }
 
         string _getSelPartAttRulesString ()
@@ -979,7 +980,7 @@ namespace NodeHelper
 
             for (var i = 0; i < 5; i++)
             {
-                var val = _selectedPartRules[i] ? 1 : 0;
+                var val = _selectedPartRules [i] ? 1 : 0;
 
                 sb.Append (val);
 
@@ -1088,10 +1089,10 @@ namespace NodeHelper
 
         static string _normalizePartName (string messedupName)
         {
-            var delim = new[] {"(Clone"};
+            var delim = new [] {"(Clone"};
             var parts = messedupName.Split (delim, StringSplitOptions.None);
 
-            return parts[0];
+            return parts [0];
         }
 
         void _orientNodeToCust ()
@@ -1196,7 +1197,7 @@ namespace NodeHelper
             }
             catch (Exception e)
             {
-                Debug.Log ("[NH]: Writing attachemnt node file threw exception: " + e.Message);
+                Debug.Log ("[NH]: Writing attachment node file threw exception: " + e.Message);
             }
             finally
             {
@@ -1204,7 +1205,7 @@ namespace NodeHelper
             }
         }
 
-        void _processAttachRules (bool[] tempArr)
+        void _processAttachRules (bool [] tempArr)
         {
             if (_selectedPart == null || _selectedPart.attachRules == null)
             {
@@ -1214,27 +1215,27 @@ namespace NodeHelper
             var arr = _selectedPartRules;
             var pr = _selectedPart.attachRules;
 
-            if (arr[0] != tempArr[0])
+            if (arr [0] != tempArr [0])
             {
                 pr.stack = !pr.stack;
             }
 
-            if (arr[1] != tempArr[1])
+            if (arr [1] != tempArr [1])
             {
                 pr.srfAttach = !pr.srfAttach;
             }
 
-            if (arr[2] != tempArr[2])
+            if (arr [2] != tempArr [2])
             {
                 pr.allowStack = !pr.allowStack;
             }
 
-            if (arr[3] != tempArr[3])
+            if (arr [3] != tempArr [3])
             {
                 pr.allowSrfAttach = !pr.allowSrfAttach;
             }
 
-            if (arr[4] != tempArr[4])
+            if (arr [4] != tempArr [4])
             {
                 pr.allowCollision = !pr.allowCollision;
             }
@@ -1259,10 +1260,10 @@ namespace NodeHelper
 
             for (var i = 0; i < 3; i++)
             {
-                var plane = _planes[i];
+                var plane = _planes [i];
                 var pT = plane.transform;
 
-                if (!_showPlanes[i])
+                if (!_showPlanes [i])
                 {
                     plane.SetActive (false);
 
@@ -1321,7 +1322,7 @@ namespace NodeHelper
         {
             if (_nodePosBackup.ContainsKey (_selectedNode))
             {
-                _setToPos (_nodePosBackup[_selectedNode]);
+                _setToPos (_nodePosBackup [_selectedNode]);
 
                 OSD.PostMessageUpperCenter ("NodeHelper: Attachment node position reset.");
             }
@@ -1409,11 +1410,11 @@ namespace NodeHelper
             var arr = _selectedPartRules;
             var pr = _selectedPart.attachRules;
 
-            arr[0] = pr.stack;
-            arr[1] = pr.srfAttach;
-            arr[2] = pr.allowStack;
-            arr[3] = pr.allowSrfAttach;
-            arr[4] = pr.allowCollision;
+            arr [0] = pr.stack;
+            arr [1] = pr.srfAttach;
+            arr [2] = pr.allowStack;
+            arr [3] = pr.allowSrfAttach;
+            arr [4] = pr.allowCollision;
         }
 
         static void _updateGoColor (GameObject go, Color color)
@@ -1463,7 +1464,7 @@ namespace NodeHelper
         {
             if (_nodePosBackup.ContainsKey (_selectedNode))
             {
-                _nodePosBackup[_selectedNode] = _selectedNode.position;
+                _nodePosBackup [_selectedNode] = _selectedNode.position;
 
                 OSD.PostMessageUpperCenter ("NodeHelper: Node attachment position updated.");
             }

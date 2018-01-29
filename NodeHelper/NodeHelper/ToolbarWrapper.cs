@@ -837,7 +837,7 @@ namespace Utilities
 
     public partial class ClickEvent : EventArgs
     {
-        internal ClickEvent(object realEvent, IButton button)
+        internal ClickEvent (object realEvent, IButton button)
         {
             Type type = realEvent.GetType ();
 
@@ -902,7 +902,7 @@ namespace Utilities
             return type;
         }
 
-        internal static PropertyInfo getProperty(Type type, string name)
+        internal static PropertyInfo getProperty (Type type, string name)
         {
             return type.GetProperty (name, BindingFlags.Public | BindingFlags.Instance);
         }
