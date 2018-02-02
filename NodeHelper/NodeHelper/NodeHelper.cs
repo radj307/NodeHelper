@@ -294,7 +294,7 @@ namespace NodeHelper
 
             _createPlanes ();
 
-            _orientationPointer = UI.CreatePrimitive (PrimitiveType.Cylinder, _orientColor, new Vector3 (0.01f, 0.15f, 0.01f), false, "Orientation Pointer", TransShader);
+            _orientationPointer = UI.CreatePrimitive (PrimitiveType.Cylinder, _orientColor, new Vector3 (0.025f, 0.4f, 0.025f), false, "Orientation Pointer", TransShader);
 
             var vesselOverlays = (EditorVesselOverlays) FindObjectOfType (typeof (EditorVesselOverlays));
 
@@ -369,7 +369,7 @@ namespace NodeHelper
                     affectedPart.SetHighlightDefault ();
                 }
 
-                foreach (var attachNode in _nodePosBackup.Keys.Where (posBkup => posBkup == null || posBkup.owner == null).ToList())
+                foreach (var attachNode in _nodePosBackup.Keys.Where (posBkup => posBkup == null || posBkup.owner == null).ToList ())
                 {
                     _nodePosBackup.Remove (attachNode);
                 }
@@ -827,7 +827,7 @@ namespace NodeHelper
             {
                 _showPlanes [i] = false;
 
-                _planes[i].SetActive (false);
+                _planes [i].SetActive (false);
             }
 
             if (deselect)
@@ -1004,7 +1004,7 @@ namespace NodeHelper
 
             var debugtext = new StringBuilder (5);
 
-            debugtext.Append (_getNodeName(_selectedNode));
+            debugtext.Append (_getNodeName (_selectedNode));
 
             var newPos = _selectedNode.position;
             var sw = positive ? _stepWidth : _stepWidth * -1f;
@@ -1251,7 +1251,11 @@ namespace NodeHelper
                 center = _selectedPart.transform.TransformPoint (_selectedNode.position);
                 up = _selectedNode.orientation;
 
-                _positionOrientationPointer (center, up);
+                var size = _selectedNode.size;
+
+                Debug.Log ("[NH]: Selected node size: " + size);
+
+                _positionOrientationPointer (center, up, size);
             }
             else
             {
@@ -1302,11 +1306,11 @@ namespace NodeHelper
             }
         }
 
-        void _positionOrientationPointer (Vector3 center, Vector3 up)
+        void _positionOrientationPointer (Vector3 center, Vector3 up, float size)
         {
             _orientationPointer.transform.up = up;
             _orientationPointer.transform.position = center;
-            _orientationPointer.transform.Translate (0f, 0.25f, 0f);
+            _orientationPointer.transform.Translate (0f, size * 0.2f + 0.6f, 0f);
 
             if (_showOrientationPointer)
             {
