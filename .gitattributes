@@ -8,30 +8,30 @@
 # Generic files.
 # ==================================================
 
-*.cfg    text
-*.CFG    text
-*.csproj text
-*.CSPROJ text
-*.sln    text
-*.SLN    text
-*.txt    text
-*.TXT    text
-*.xml    text
-*.XML    text
+*.cfg       text    eol=lf
+*.CFG       text    eol=lf
+*.csproj    text    eol=lf
+*.CSPROJ    text    eol=lf
+*.sln       text    eol=lf
+*.SLN       text    eol=lf
+*.txt       text    eol=lf
+*.TXT       text    eol=lf
+*.xml       text    eol=lf
+*.XML       text    eol=lf
 
 # ==================================================
 # Assemblies and database files.
 # ==================================================
 
-*.dll  binary
-*.DLL  binary
+*.dll   binary
+*.DLL   binary
 
 # ==================================================
 # Compilable source code files.
 # ==================================================
 
-*.cs diff=csharp
-*.CS diff=csharp
+*.cs    diff=csharp
+*.CS    diff=csharp
 
 # ==================================================
 # Ignore list (folder and file names).
