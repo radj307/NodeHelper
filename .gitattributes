@@ -5,13 +5,15 @@
 * text=auto
 
 # ==================================================
-# Generic files.
+# Plain text
 # ==================================================
 
 *.cfg       text    eol=lf
 *.CFG       text    eol=lf
 *.csproj    text    eol=lf
 *.CSPROJ    text    eol=lf
+*.md        text    eol=lf
+*.MD        text    eol=lf
 *.sln       text    eol=lf
 *.SLN       text    eol=lf
 *.txt       text    eol=lf
@@ -20,21 +22,21 @@
 *.XML       text    eol=lf
 
 # ==================================================
-# Assemblies and database files.
+# Binaries
 # ==================================================
 
 *.dll   binary
 *.DLL   binary
 
 # ==================================================
-# Compilable source code files.
+# Source code
 # ==================================================
 
 *.cs    diff=csharp
 *.CS    diff=csharp
 
 # ==================================================
-# Ignore list (folder and file names).
+# Ignore list
 # ==================================================
 
 Source         export-ignore
