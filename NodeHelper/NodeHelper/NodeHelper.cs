@@ -1253,8 +1253,6 @@ namespace NodeHelper
 
                 var size = _selectedNode.size;
 
-                Debug.Log ("[NH]: Selected node size: " + size);
-
                 _positionOrientationPointer (center, up, size);
             }
             else
