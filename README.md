@@ -34,10 +34,12 @@ NodeHelper is licensed under a **Creative Commons Attribution-NonCommercial-Shar
 
 You should have received a copy of the license along with this work. If not, visit the **[official Creative Commons web page][NH:cc-license-link]**.
 
+**Note that the above license does not cover mod packs. Redistributing this work via a mod pack is not allowed.**
+
 ***
 
 [NH:cc-license-link]:           https://creativecommons.org/licenses/by-nc-sa/4.0
 [NH:contributor-felbourn-link]: https://github.com/Felbourn
 [NH:original-forum-link]:       http://forum.kerbalspaceprogram.com/index.php?showtopic=87592
-[NH:shield-version]:            https://img.shields.io/badge/KSP%20Version-1.3.1.1891-red.svg
 [NH:shield-license]:            https://img.shields.io/badge/License-CC--BY--NC--SA%204.0-green.svg
+[NH:shield-version]:            https://img.shields.io/badge/KSP%20Version-1.4.1.2089-red.svg
