@@ -33,7 +33,7 @@ namespace NodeHelper
         {
             get
             {
-                return "Editor Settings";
+                return "Node Helper";
             }
         }
 
