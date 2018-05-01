@@ -42,4 +42,4 @@ You should have received a copy of the license along with this work. If not, vis
 [NH:contributor-felbourn-link]: https://github.com/Felbourn
 [NH:original-forum-link]:       http://forum.kerbalspaceprogram.com/index.php?showtopic=87592
 [NH:shield-license]:            https://img.shields.io/badge/License-CC--BY--NC--SA%204.0-green.svg
-[NH:shield-version]:            https://img.shields.io/badge/KSP%20Version-1.4.1.2089-red.svg
+[NH:shield-version]:            https://img.shields.io/badge/KSP%20Version-1.4.3.2152-red.svg
