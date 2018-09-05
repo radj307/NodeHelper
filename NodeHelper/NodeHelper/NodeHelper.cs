@@ -52,7 +52,7 @@ namespace NodeHelper
         bool _showCreateMenu;
         bool _showOrientationPointer = true;
 
-        string ToolbarButtonTexture = "NodeHelper" + Path.AltDirectorySeparatorChar + "Textures" + Path.AltDirectorySeparatorChar + "icon_toolbar";
+        readonly string ToolbarButtonTexture = "NodeHelper" + Path.AltDirectorySeparatorChar + "Textures" + Path.AltDirectorySeparatorChar + "icon_toolbar";
 
         static ApplicationLauncherButton btnLauncher;
 
@@ -262,7 +262,7 @@ namespace NodeHelper
             {
                 if (ToolbarManager.Instance == null)
                 {
-                    _nodeHelperButton = ToolbarManager.Instance.add ("NodeHelper", "NodeHelperButton");
+                    _nodeHelperButton = ToolbarManager.Instance.Add ("NodeHelper", "NodeHelperButton");
 
                     _nodeHelperButton.TexturePath = ToolbarButtonTexture;
                     _nodeHelperButton.ToolTip = "NodeHelper";
