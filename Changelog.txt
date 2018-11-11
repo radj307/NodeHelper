@@ -1,3 +1,12 @@
+1.5.0
+	Adoption by Linuxgurugamer
+	Built for 1.5
+	Merged in changes from PhiniasFreak
+	Removed extra layer of directories
+	Added GameData directories for build
+	Added in build scripts
+
+
 11/14/2016	Added code to keep windows on screen
 			Updated toolbarwrapper
 			Updated for 1.2.1

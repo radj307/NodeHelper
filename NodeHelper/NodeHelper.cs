@@ -7,7 +7,7 @@ using KSP.UI.Screens;
 using UnityEngine;
 using Utilities;
 
-namespace NodeHelper
+namespace NodeHelper_ns
 {
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
 

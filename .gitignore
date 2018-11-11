@@ -240,3 +240,7 @@ NodeHelper/References
 *.LNK
 *.pdb
 *.PDB
+.vs
+.vs/*
+.*~
+.bak
