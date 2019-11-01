@@ -838,6 +838,7 @@ namespace NodeHelper_ns
             }
         }
 
+
         List<Tuple<string, string>> _constructNodeValues ()
         {
             var nameList = new List<AttachNode>(_selectedPart.attachNodes.Count + 1);

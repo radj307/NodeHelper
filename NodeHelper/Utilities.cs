@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace Utilities
 {
+#if false
     public class Tuple<T1, T2>
     {
         public Tuple ()
@@ -28,6 +29,7 @@ namespace Utilities
             set;
         }
     }
+#endif
 
     public static class OSD
     {
