@@ -1,5 +1,10 @@
 ChangeLog
 
+1.5.1.1
+	Added ToolbarController
+	Added ClickThroughBlocker
+	Moved Textures into PluginData
+
 1.5.1
 	Added InstallChecker
 	Updated for KSP 1.8
@@ -13,10 +18,12 @@ ChangeLog
 	Added in build scripts
 
 
-11/14/2016	Added code to keep windows on screen
-			Updated toolbarwrapper
-			Updated for 1.2.1
+11/14/2016
+	Added code to keep windows on screen
+	Updated toolbarwrapper
+	Updated for 1.2.1
 
-1/13/2017	Added code to diplay messages on screen
-			Added code to write dest file name to log file and put it on screen
-			Recompiled for 1.2.2
+1/13/2017
+	Added code to diplay messages on screen
+	Added code to write dest file name to log file and put it on screen
+	Recompiled for 1.2.2

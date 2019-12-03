@@ -6,11 +6,25 @@ using System.Text;
 using KSP.UI.Screens;
 using UnityEngine;
 using Utilities;
+using ClickThroughFix;
+using ToolbarControl_NS;
+
+
 
 namespace NodeHelper_ns
 {
-    [KSPAddon(KSPAddon.Startup.EditorAny, false)]
 
+    [KSPAddon(KSPAddon.Startup.MainMenu, true)]
+    public class RegisterToolbar : MonoBehaviour
+    {
+        void Start()
+        {
+            ToolbarControl.RegisterMod(NodeHelperAddon.MODID, NodeHelperAddon.MODNAME);
+        }
+    }
+
+
+    [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class NodeHelperAddon : MonoBehaviour
     {
         const int CleanupInterval = 30;
@@ -18,10 +32,10 @@ namespace NodeHelper_ns
         const string TransShader = "Transparent/Diffuse";
         const bool PrintAdvancedConfig = false;
 
-        readonly Color _nodeColor = UI.GetColorFromRgb (0, 226, 94, 150);
-        readonly Color _selectedNodeColor = UI.GetColorFromRgb (249, 255, 94, 200);
-        readonly Color _planeColor = UI.GetColorFromRgb (100, 191, 219, 150);
-        readonly Color _orientColor = UI.GetColorFromRgb (255, 0, 42, 200);
+        readonly Color _nodeColor = UI.GetColorFromRgb(0, 226, 94, 150);
+        readonly Color _selectedNodeColor = UI.GetColorFromRgb(249, 255, 94, 200);
+        readonly Color _planeColor = UI.GetColorFromRgb(100, 191, 219, 150);
+        readonly Color _orientColor = UI.GetColorFromRgb(255, 0, 42, 200);
 
         HashSet<Part> _affectedParts;
 
@@ -29,7 +43,7 @@ namespace NodeHelper_ns
         Dictionary<AttachNode, string> _nodeNameMapping;
         Dictionary<AttachNode, Vector3> _nodePosBackup;
 
-        IButton _nodeHelperButton;
+        //Utilities.IButton _nodeHelperButton;
 
         Material _nodeMaterial;
 
@@ -52,9 +66,12 @@ namespace NodeHelper_ns
         bool _showCreateMenu;
         bool _showOrientationPointer = true;
 
-        readonly string ToolbarButtonTexture = "NodeHelper" + Path.AltDirectorySeparatorChar + "Textures" + Path.AltDirectorySeparatorChar + "icon_toolbar";
+        readonly string ToolbarButtonTexture = "NodeHelper" + Path.AltDirectorySeparatorChar + "PluginData/Textures" + Path.AltDirectorySeparatorChar + "icon_toolbar";
 
-        static ApplicationLauncherButton btnLauncher;
+        //static ApplicationLauncherButton btnLauncher;
+
+        private static ToolbarControl toolbarControl;
+
 
         float _stepWidth = 0.1f;
         float _planeRadius = 0.625f;
@@ -67,31 +84,35 @@ namespace NodeHelper_ns
         string _newNodeName = "newNode";
         string _newNodePos = ZeroVector;
 
+
+        public const string MODID = "NodeHelper";
+        public const string MODNAME = "Node Helper";
+
         int _cleanupCounter;
 
         //  Need to add code to make sure window isn't off - screen when loading options.
         //  Also need to make sure WindowPos isn't off - screen at start.
 
-        Rect nodeListPos = new Rect (315, 100, 160, 40);
-        Rect windowPos = new Rect (1375, 80, 160, 40);
-        Rect nodeEditPos = new Rect (315, 470, 160, 40);
+        Rect nodeListPos = new Rect(315, 100, 160, 40);
+        Rect windowPos = new Rect(1375, 80, 160, 40);
+        Rect nodeEditPos = new Rect(315, 470, 160, 40);
 
-        static Vector3 GetGoScaleForNode (AttachNode attachNode)
+        static Vector3 GetGoScaleForNode(AttachNode attachNode)
         {
             return Vector3.one * attachNode.radius * (attachNode.size > 0 ? attachNode.size : 0.2f);
         }
 
-        void HandleActionMenuClosed (Part data)
+        void HandleActionMenuClosed(Part data)
         {
             if (_selectedPart != null)
             {
-                _selectedPart.SetHighlightDefault ();
+                _selectedPart.SetHighlightDefault();
             }
 
-            _clearMapping ();
+            _clearMapping();
         }
 
-        void HandleActionMenuOpened (Part data)
+        void HandleActionMenuOpened(Part data)
         {
             if (data == null)
             {
@@ -100,36 +121,43 @@ namespace NodeHelper_ns
 
             if (_selectedPart != null && data != _selectedPart)
             {
-                HandleActionMenuClosed (null);
+                HandleActionMenuClosed(null);
             }
 
             _selectedPart = data;
         }
 
-        public void OnDestroy ()
+        public void OnDestroy()
         {
-            GameEvents.onPartActionUIDismiss.Remove (HandleActionMenuClosed);
+            GameEvents.onPartActionUIDismiss.Remove(HandleActionMenuClosed);
 
-            GameEvents.onPartActionUICreate.Remove (HandleActionMenuOpened);
+            GameEvents.onPartActionUICreate.Remove(HandleActionMenuOpened);
 
+#if false
             if (btnLauncher != null)
             {
-                ApplicationLauncher.Instance.RemoveModApplication (btnLauncher);
+                ApplicationLauncher.Instance.RemoveModApplication(btnLauncher);
+            }
+#endif
+            if (toolbarControl != null)
+            {
+                toolbarControl.OnDestroy();
+                Destroy(toolbarControl);
             }
         }
 
-        void HandleWindow (ref Rect position, int id, string windowname, GUI.WindowFunction func)
+        void HandleWindow(ref Rect position, int id, string windowname, GUI.WindowFunction func)
         {
-            position = GUILayout.Window (GetType ().FullName.GetHashCode () + id, position, func, windowname, GUILayout.Width (200), GUILayout.Height (20));
+            position = ClickThruBlocker.GUILayoutWindow(GetType().FullName.GetHashCode() + id, position, func, windowname, GUILayout.Width(200), GUILayout.Height(20));
         }
 
-        public void OnGUI ()
+        public void OnGUI()
         {
             if (HighLogic.LoadedScene != GameScenes.EDITOR)
             {
                 if (inputLockActive)
                 {
-                    InputLockManager.RemoveControlLock (inputLock);
+                    InputLockManager.RemoveControlLock(inputLock);
 
                     inputLockActive = false;
                 }
@@ -172,53 +200,53 @@ namespace NodeHelper_ns
                 nodeEditPos.y = Screen.height - nodeEditPos.height;
             }
 
-            HandleWindow (ref nodeListPos, 0, "Node Helper - Node List", NodeListGui);
+            HandleWindow(ref nodeListPos, 0, "Node Helper - Node List", NodeListGui);
 
             if (_selectedPart != null)
             {
-                HandleWindow (ref windowPos, 1, "Node Helper - Part Data", WindowGui);
+                HandleWindow(ref windowPos, 1, "Node Helper - Part Data", WindowGui);
             }
 
             if (_selectedNode != null)
             {
-                HandleWindow (ref nodeEditPos, 2, "Node Helper - Edit Node", NodeEditGui);
+                HandleWindow(ref nodeEditPos, 2, "Node Helper - Edit Node", NodeEditGui);
             }
         }
 
-        public void Start ()
+        public void Start()
         {
-            _settings = GameDatabase.Instance.GetConfigNodes ("NodeHelperSettings").FirstOrDefault ();
+            _settings = GameDatabase.Instance.GetConfigNodes("NodeHelperSettings").FirstOrDefault();
 
             if (_settings != null)
             {
                 int coord;
 
-                if (int.TryParse (_settings.GetNode ("ListWindow").GetValue ("x"), out coord))
+                if (int.TryParse(_settings.GetNode("ListWindow").GetValue("x"), out coord))
                 {
                     nodeListPos.x = coord;
                 }
 
-                if (int.TryParse (_settings.GetNode ("ListWindow").GetValue ("y"), out coord))
+                if (int.TryParse(_settings.GetNode("ListWindow").GetValue("y"), out coord))
                 {
                     nodeListPos.y = coord;
                 }
 
-                if (int.TryParse (_settings.GetNode ("PartWindow").GetValue ("x"), out coord))
+                if (int.TryParse(_settings.GetNode("PartWindow").GetValue("x"), out coord))
                 {
                     windowPos.x = coord;
                 }
 
-                if (int.TryParse (_settings.GetNode ("PartWindow").GetValue ("y"), out coord))
+                if (int.TryParse(_settings.GetNode("PartWindow").GetValue("y"), out coord))
                 {
                     windowPos.y = coord;
                 }
 
-                if (int.TryParse (_settings.GetNode ("NodeWindow").GetValue ("x"), out coord))
+                if (int.TryParse(_settings.GetNode("NodeWindow").GetValue("x"), out coord))
                 {
                     nodeEditPos.x = coord;
                 }
 
-                if (int.TryParse (_settings.GetNode ("NodeWindow").GetValue ("y"), out coord))
+                if (int.TryParse(_settings.GetNode("NodeWindow").GetValue("y"), out coord))
                 {
                     nodeEditPos.y = coord;
                 }
@@ -227,47 +255,53 @@ namespace NodeHelper_ns
             {
                 string ConfigFilePath = KSPUtil.ApplicationRootPath + "GameData" + Path.AltDirectorySeparatorChar + "NodeHelper" + Path.AltDirectorySeparatorChar + "Configs" + Path.AltDirectorySeparatorChar + "NodeHelper_Settings.cfg";
 
-                var ConfigNodeSettings = new ConfigNode ();
+                var ConfigNodeSettings = new ConfigNode();
 
-                var NodeHelperSettings = ConfigNodeSettings.AddNode ("NodeHelperSettings");
+                var NodeHelperSettings = ConfigNodeSettings.AddNode("NodeHelperSettings");
 
-                var ListWindowNode = NodeHelperSettings.AddNode ("ListWindow");
+                var ListWindowNode = NodeHelperSettings.AddNode("ListWindow");
 
-                ListWindowNode.AddValue ("x", 100);
-                ListWindowNode.AddValue ("y", 100);
+                ListWindowNode.AddValue("x", 100);
+                ListWindowNode.AddValue("y", 100);
 
-                var NodeWindowNode = NodeHelperSettings.AddNode ("NodeWindow");
+                var NodeWindowNode = NodeHelperSettings.AddNode("NodeWindow");
 
-                NodeWindowNode.AddValue ("x", 300);
-                NodeWindowNode.AddValue ("y", 300);
+                NodeWindowNode.AddValue("x", 300);
+                NodeWindowNode.AddValue("y", 300);
 
-                var PartWindowNode = NodeHelperSettings.AddNode ("PartWindow");
+                var PartWindowNode = NodeHelperSettings.AddNode("PartWindow");
 
-                PartWindowNode.AddValue ("x", 200);
-                PartWindowNode.AddValue ("y", 200);
+                PartWindowNode.AddValue("x", 200);
+                PartWindowNode.AddValue("y", 200);
 
-                ConfigNodeSettings.Save (ConfigFilePath);
+                ConfigNodeSettings.Save(ConfigFilePath);
             }
 
+#if false
             bool UseBlizzyToolbar = HighLogic.CurrentGame.Parameters.CustomParams<NodeHelper>()._blizzyToolbar;
 
-            if (UseBlizzyToolbar.Equals (false))
+            if (UseBlizzyToolbar.Equals(false))
             {
                 if (btnLauncher == null)
                 {
-                    btnLauncher = ApplicationLauncher.Instance.AddModApplication (() => _show = !_show, () => _show = !_show, null, null, null, null, ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.SPH, GameDatabase.Instance.GetTexture (ToolbarButtonTexture, false));
+                    btnLauncher = ApplicationLauncher.Instance.AddModApplication(
+                        () => _show = !_show, 
+                        () => _show = !_show, 
+                        null, null, null, null, 
+                        ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.SPH, 
+                        GameDatabase.Instance.GetTexture(ToolbarButtonTexture, false));
                 }
             }
             else
             {
-                if (ToolbarManager.Instance == null)
+                if (Utilities.ToolbarManager.Instance == null)
                 {
-                    _nodeHelperButton = ToolbarManager.Instance.Add ("NodeHelper", "NodeHelperButton");
+                    _nodeHelperButton = Utilities.ToolbarManager.Instance.Add("NodeHelper", "NodeHelperButton");
 
                     _nodeHelperButton.TexturePath = ToolbarButtonTexture;
                     _nodeHelperButton.ToolTip = "NodeHelper";
 
-                    _nodeHelperButton.Visibility = new GameScenesVisibility (GameScenes.EDITOR);
+                    _nodeHelperButton.Visibility = new Utilities.GameScenesVisibility(GameScenes.EDITOR);
 
                     _nodeHelperButton.OnClick += (e => _show = !_show);
                 }
@@ -276,10 +310,22 @@ namespace NodeHelper_ns
                     return;
                 }
             }
+#endif
+            toolbarControl = this.gameObject.AddComponent<ToolbarControl>();
+            toolbarControl.AddToAllToolbars(
+                () => _show = !_show,
+                () => _show = !_show,            
+                ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.SPH,
+                MODID,
+                "NodeHelperButton",
+                ToolbarButtonTexture,
+                ToolbarButtonTexture,
+                MODNAME
+                );
 
-            GameEvents.onPartActionUICreate.Add (HandleActionMenuOpened);
+            GameEvents.onPartActionUICreate.Add(HandleActionMenuOpened);
 
-            GameEvents.onPartActionUIDismiss.Add (HandleActionMenuClosed);
+            GameEvents.onPartActionUIDismiss.Add(HandleActionMenuClosed);
 
             _selectedPart = null;
             _selectedNode = null;
@@ -288,36 +334,36 @@ namespace NodeHelper_ns
             _nodeNameMapping = new Dictionary<AttachNode, string>();
             _nodePosBackup = new Dictionary<AttachNode, Vector3>();
             _affectedParts = new HashSet<Part>();
-            _selectedPartRules = new bool [5];
-            _showPlanes = new bool [3];
-            _planes = new GameObject [3];
+            _selectedPartRules = new bool[5];
+            _showPlanes = new bool[3];
+            _planes = new GameObject[3];
 
-            _createPlanes ();
+            _createPlanes();
 
-            _orientationPointer = UI.CreatePrimitive (PrimitiveType.Cylinder, _orientColor, new Vector3 (0.025f, 0.4f, 0.025f), false, "Orientation Pointer", TransShader);
+            _orientationPointer = UI.CreatePrimitive(PrimitiveType.Cylinder, _orientColor, new Vector3(0.025f, 0.4f, 0.025f), false, "Orientation Pointer", TransShader);
 
-            var vesselOverlays = (EditorVesselOverlays) FindObjectOfType (typeof (EditorVesselOverlays));
+            var vesselOverlays = (EditorVesselOverlays)FindObjectOfType(typeof(EditorVesselOverlays));
 
             _nodeMaterial = vesselOverlays.CoMmarker.gameObject.GetComponent<Renderer>().material;
 
-            _nodeMaterial.shader = Shader.Find (TransShader);
+            _nodeMaterial.shader = Shader.Find(TransShader);
 
             _initialized = true;
         }
 
-        bool ShouldBeLocked ()
+        bool ShouldBeLocked()
         {
-            if (nodeListPos.Contains (new Vector2 (Input.mousePosition.x, Screen.height - Input.mousePosition.y)))
+            if (nodeListPos.Contains(new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y)))
             {
                 return true;
             }
 
-            if (_selectedPart != null && windowPos.Contains (new Vector2 (Input.mousePosition.x, Screen.height - Input.mousePosition.y)))
+            if (_selectedPart != null && windowPos.Contains(new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y)))
             {
                 return true;
             }
 
-            if (_selectedNode != null && nodeEditPos.Contains (new Vector2 (Input.mousePosition.x, Screen.height - Input.mousePosition.y)))
+            if (_selectedNode != null && nodeEditPos.Contains(new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y)))
             {
                 return true;
             }
@@ -325,13 +371,13 @@ namespace NodeHelper_ns
             return false;
         }
 
-        void UpdateLock ()
+        void UpdateLock()
         {
-            if (ShouldBeLocked ())
+            if (ShouldBeLocked())
             {
                 if (!inputLockActive)
                 {
-                    InputLockManager.SetControlLock (ControlTypes.ALLBUTCAMERAS, inputLock);
+                    InputLockManager.SetControlLock(ControlTypes.ALLBUTCAMERAS, inputLock);
 
                     inputLockActive = true;
                 }
@@ -340,21 +386,21 @@ namespace NodeHelper_ns
             {
                 if (inputLockActive)
                 {
-                    InputLockManager.RemoveControlLock (inputLock);
+                    InputLockManager.RemoveControlLock(inputLock);
 
                     inputLockActive = false;
                 }
             }
         }
 
-        public void Update ()
+        public void Update()
         {
             if (EditorLogic.fetch == null)
             {
                 return;
             }
 
-            UpdateLock ();
+            UpdateLock();
 
             if (_cleanupCounter > 0)
             {
@@ -364,21 +410,21 @@ namespace NodeHelper_ns
             {
                 _cleanupCounter = CleanupInterval;
 
-                foreach (var affectedPart in _affectedParts.Where (affectedPart => _selectedPart == null || affectedPart != _selectedPart))
+                foreach (var affectedPart in _affectedParts.Where(affectedPart => _selectedPart == null || affectedPart != _selectedPart))
                 {
-                    affectedPart.SetHighlightDefault ();
+                    affectedPart.SetHighlightDefault();
                 }
 
-                foreach (var attachNode in _nodePosBackup.Keys.Where (posBkup => posBkup == null || posBkup.owner == null).ToList ())
+                foreach (var attachNode in _nodePosBackup.Keys.Where(posBkup => posBkup == null || posBkup.owner == null).ToList())
                 {
-                    _nodePosBackup.Remove (attachNode);
+                    _nodePosBackup.Remove(attachNode);
                 }
 
                 if (EditorLogic.SelectedPart != null)
                 {
-                    _clearMapping ();
+                    _clearMapping();
 
-                    _cleanSelectedPartSetup ();
+                    _cleanSelectedPartSetup();
                 }
             }
 
@@ -386,487 +432,487 @@ namespace NodeHelper_ns
             {
                 if (_selectedPart != null && !_show)
                 {
-                    _cleanSelectedPartSetup ();
+                    _cleanSelectedPartSetup();
 
-                    _clearMapping ();
+                    _clearMapping();
                 }
 
                 return;
             }
 
-            _updateMapping ();
+            _updateMapping();
 
-            _updateAttachRules ();
+            _updateAttachRules();
 
-            _setupSelectedPart ();
+            _setupSelectedPart();
 
-            _processPlanes ();
+            _processPlanes();
 
-            foreach (var mapping in _nodeMapping.Select (kv => new {node = kv.Key, go = kv.Value}))
+            foreach (var mapping in _nodeMapping.Select(kv => new { node = kv.Key, go = kv.Value }))
             {
-                var localPos = _selectedPart.transform.TransformPoint (mapping.node.position);
+                var localPos = _selectedPart.transform.TransformPoint(mapping.node.position);
 
                 var goTrans = mapping.go.transform;
 
                 goTrans.position = localPos;
 
-                goTrans.localScale = GetGoScaleForNode (mapping.node);
+                goTrans.localScale = GetGoScaleForNode(mapping.node);
 
                 goTrans.up = mapping.node.orientation;
 
                 if (_selectedNode != null && mapping.node == _selectedNode)
                 {
-                    _updateGoColor (mapping.go, _selectedNodeColor);
+                    _updateGoColor(mapping.go, _selectedNodeColor);
                 }
                 else
                 {
-                    _updateGoColor (mapping.go, _nodeColor);
+                    _updateGoColor(mapping.go, _nodeColor);
                 }
             }
         }
 
-        protected void NodeEditGui (int windowID)
+        protected void NodeEditGui(int windowID)
         {
-            var expandWidth = GUILayout.ExpandWidth (true);
+            var expandWidth = GUILayout.ExpandWidth(true);
 
             if (_selectedNode != null)
             {
-                if (GUILayout.Button ("Clear Selection", expandWidth))
+                if (GUILayout.Button("Clear Selection", expandWidth))
                 {
                     _selectedNode = null;
                 }
 
-                GUILayout.BeginVertical ("box");
+                GUILayout.BeginVertical("box");
 
-                GUILayout.BeginHorizontal ();
+                GUILayout.BeginHorizontal();
 
-                GUILayout.Label ("Step:", GUILayout.Width (90));
+                GUILayout.Label("Step:", GUILayout.Width(90));
 
-                if (GUILayout.Button ("1.0"))
+                if (GUILayout.Button("1.0"))
                 {
                     _stepWidth = 1;
                     _stepWidthString = "1.0";
                 }
 
-                if (GUILayout.Button ("0.1"))
+                if (GUILayout.Button("0.1"))
                 {
                     _stepWidth = 0.1f;
                     _stepWidthString = "0.1";
                 }
 
-                if (GUILayout.Button ("0.01"))
+                if (GUILayout.Button("0.01"))
                 {
                     _stepWidth = 0.01f;
                     _stepWidthString = "0.01";
                 }
 
-                if (GUILayout.Button ("0.001"))
+                if (GUILayout.Button("0.001"))
                 {
                     _stepWidth = 0.001f;
                     _stepWidthString = "0.001";
                 }
 
-                GUILayout.EndHorizontal ();
+                GUILayout.EndHorizontal();
 
-                GUILayout.BeginHorizontal ();
+                GUILayout.BeginHorizontal();
 
-                _stepWidthString = GUILayout.TextField (_stepWidthString, GUILayout.Width (90));
+                _stepWidthString = GUILayout.TextField(_stepWidthString, GUILayout.Width(90));
 
-                if (GUILayout.Button ("Set"))
+                if (GUILayout.Button("Set"))
                 {
-                    _parseStepWidth ();
+                    _parseStepWidth();
                 }
 
-                GUILayout.EndHorizontal ();
+                GUILayout.EndHorizontal();
 
-                GUILayout.BeginHorizontal ();
+                GUILayout.BeginHorizontal();
 
-                if (GUILayout.Button ("X+"))
+                if (GUILayout.Button("X+"))
                 {
-                    _moveNode (MoveDirs.X, true);
+                    _moveNode(MoveDirs.X, true);
                 }
 
-                if (GUILayout.Button ("Y+"))
+                if (GUILayout.Button("Y+"))
                 {
-                    _moveNode (MoveDirs.Y, true);
+                    _moveNode(MoveDirs.Y, true);
                 }
 
-                if (GUILayout.Button ("Z+"))
+                if (GUILayout.Button("Z+"))
                 {
-                    _moveNode (MoveDirs.Z, true);
+                    _moveNode(MoveDirs.Z, true);
                 }
 
-                GUILayout.EndHorizontal ();
+                GUILayout.EndHorizontal();
 
-                GUILayout.BeginHorizontal ();
+                GUILayout.BeginHorizontal();
 
-                if (GUILayout.Button ("X-"))
+                if (GUILayout.Button("X-"))
                 {
-                    _moveNode (MoveDirs.X, false);
+                    _moveNode(MoveDirs.X, false);
                 }
 
-                if (GUILayout.Button ("Y-"))
+                if (GUILayout.Button("Y-"))
                 {
-                    _moveNode (MoveDirs.Y, false);
+                    _moveNode(MoveDirs.Y, false);
                 }
 
-                if (GUILayout.Button ("Z-"))
+                if (GUILayout.Button("Z-"))
                 {
-                    _moveNode (MoveDirs.Z, false);
+                    _moveNode(MoveDirs.Z, false);
                 }
 
-                GUILayout.EndHorizontal ();
+                GUILayout.EndHorizontal();
 
-                GUILayout.BeginHorizontal ();
+                GUILayout.BeginHorizontal();
 
                 var cPos = _selectedNode.position;
-                var posText = string.Format ("{0}, {1}, {2}", _formatNumberForOutput (cPos.x), _formatNumberForOutput (cPos.y), _formatNumberForOutput (cPos.z));
+                var posText = string.Format("{0}, {1}, {2}", _formatNumberForOutput(cPos.x), _formatNumberForOutput(cPos.y), _formatNumberForOutput(cPos.z));
 
-                GUILayout.Label ("Position (" + posText + ")", expandWidth);
+                GUILayout.Label("Position (" + posText + ")", expandWidth);
 
-                GUILayout.EndHorizontal ();
+                GUILayout.EndHorizontal();
 
-                _targetPos = GUILayout.TextField (_targetPos, GUILayout.Width (180));
+                _targetPos = GUILayout.TextField(_targetPos, GUILayout.Width(180));
 
-                GUILayout.BeginHorizontal ();
+                GUILayout.BeginHorizontal();
 
-                if (GUILayout.Button ("Copy Pos", expandWidth))
+                if (GUILayout.Button("Copy Pos", expandWidth))
                 {
                     _targetPos = posText;
                 }
 
-                if (GUILayout.Button ("Set Pos", expandWidth))
+                if (GUILayout.Button("Set Pos", expandWidth))
                 {
                     _setToPos();
                 }
 
-                GUILayout.EndHorizontal ();
+                GUILayout.EndHorizontal();
 
-                GUILayout.BeginHorizontal ();
+                GUILayout.BeginHorizontal();
 
-                if (GUILayout.Button ("Use Default", expandWidth))
+                if (GUILayout.Button("Use Default", expandWidth))
                 {
-                    _resetCurrNode ();
+                    _resetCurrNode();
                 }
 
-                if (GUILayout.Button ("Set Default", expandWidth))
+                if (GUILayout.Button("Set Default", expandWidth))
                 {
-                    _updateResetPosCurrNode ();
+                    _updateResetPosCurrNode();
                 }
 
-                GUILayout.EndHorizontal ();
+                GUILayout.EndHorizontal();
 
-                GUILayout.EndVertical ();
+                GUILayout.EndVertical();
 
-                GUILayout.BeginVertical ("box");
+                GUILayout.BeginVertical("box");
 
-                GUILayout.BeginHorizontal ();
+                GUILayout.BeginHorizontal();
 
-                GUILayout.Label ("Size: " + _selectedNode.size, expandWidth);
+                GUILayout.Label("Size: " + _selectedNode.size, expandWidth);
 
-                if (GUILayout.Button ("-1", expandWidth) && (_selectedNode.size > 0))
+                if (GUILayout.Button("-1", expandWidth) && (_selectedNode.size > 0))
                 {
                     _selectedNode.size -= 1;
                 }
 
-                if (GUILayout.Button ("+1", expandWidth) && (_selectedNode.size < int.MaxValue - 1))
+                if (GUILayout.Button("+1", expandWidth) && (_selectedNode.size < int.MaxValue - 1))
                 {
                     _selectedNode.size += 1;
                 }
 
-                GUILayout.EndHorizontal ();
+                GUILayout.EndHorizontal();
 
                 var or = _selectedNode.orientation;
-                var orientationString = _formatNumberForOutput (or.x) + ", " + _formatNumberForOutput (or.y) + ", " + _formatNumberForOutput (or.z);
+                var orientationString = _formatNumberForOutput(or.x) + ", " + _formatNumberForOutput(or.y) + ", " + _formatNumberForOutput(or.z);
 
-                GUILayout.Label ("Orient: " + orientationString, expandWidth);
+                GUILayout.Label("Orient: " + orientationString, expandWidth);
 
-                GUILayout.BeginHorizontal ();
+                GUILayout.BeginHorizontal();
 
-                if (GUILayout.Button ("+X", expandWidth))
+                if (GUILayout.Button("+X", expandWidth))
                 {
-                    _selectedNode.orientation = new Vector3 (1f, 0f, 0f);
+                    _selectedNode.orientation = new Vector3(1f, 0f, 0f);
                 }
 
-                if (GUILayout.Button ("+Y", expandWidth))
+                if (GUILayout.Button("+Y", expandWidth))
                 {
-                    _selectedNode.orientation = new Vector3 (0f, 1f, 0f);
+                    _selectedNode.orientation = new Vector3(0f, 1f, 0f);
                 }
 
-                if (GUILayout.Button ("+Z", expandWidth))
+                if (GUILayout.Button("+Z", expandWidth))
                 {
-                    _selectedNode.orientation = new Vector3 (0f, 0f, 1f);
+                    _selectedNode.orientation = new Vector3(0f, 0f, 1f);
                 }
 
-                _nodeOrientationCust = GUILayout.TextField (_nodeOrientationCust, expandWidth);
+                _nodeOrientationCust = GUILayout.TextField(_nodeOrientationCust, expandWidth);
 
-                GUILayout.EndHorizontal ();
+                GUILayout.EndHorizontal();
 
-                GUILayout.BeginHorizontal ();
+                GUILayout.BeginHorizontal();
 
-                if (GUILayout.Button ("-X", expandWidth))
+                if (GUILayout.Button("-X", expandWidth))
                 {
-                    _selectedNode.orientation = new Vector3 (-1f, 0f, 0f);
+                    _selectedNode.orientation = new Vector3(-1f, 0f, 0f);
                 }
 
-                if (GUILayout.Button ("-Y", expandWidth))
+                if (GUILayout.Button("-Y", expandWidth))
                 {
-                    _selectedNode.orientation = new Vector3 (0f, -1f, 0f);
+                    _selectedNode.orientation = new Vector3(0f, -1f, 0f);
                 }
 
-                if (GUILayout.Button ("-Z", expandWidth))
+                if (GUILayout.Button("-Z", expandWidth))
                 {
-                    _selectedNode.orientation = new Vector3 (0f, 0f, -1f);
+                    _selectedNode.orientation = new Vector3(0f, 0f, -1f);
                 }
 
-                if (GUILayout.Button ("Custom", expandWidth))
+                if (GUILayout.Button("Custom", expandWidth))
                 {
-                    _orientNodeToCust ();
+                    _orientNodeToCust();
                 }
 
-                GUILayout.EndHorizontal ();
+                GUILayout.EndHorizontal();
 
-                _showOrientationPointer = GUILayout.Toggle (_showOrientationPointer, "Show Orientation Pointer", "Button", expandWidth);
+                _showOrientationPointer = GUILayout.Toggle(_showOrientationPointer, "Show Orientation Pointer", "Button", expandWidth);
 
-                GUILayout.EndVertical ();
+                GUILayout.EndVertical();
 
-                if (GUILayout.Button ("Delete node", expandWidth))
+                if (GUILayout.Button("Delete node", expandWidth))
                 {
-                    _deleteCurrNode ();
+                    _deleteCurrNode();
                 }
 
-                GUI.DragWindow ();
+                GUI.DragWindow();
             }
         }
 
-        Vector2 scrollPos = new Vector2 (0f, 0f);
+        Vector2 scrollPos = new Vector2(0f, 0f);
 
-        protected void NodeListGui (int windowID)
+        protected void NodeListGui(int windowID)
         {
-            var expandWidth = GUILayout.ExpandWidth (true);
+            var expandWidth = GUILayout.ExpandWidth(true);
 
             if (_selectedPart == null)
             {
-                GUILayout.Label ("Right-click a part to select it.", expandWidth);
+                GUILayout.Label("Right-click a part to select it.", expandWidth);
 
-                GUI.DragWindow ();
+                GUI.DragWindow();
 
                 return;
             }
 
-            GUILayout.BeginVertical ("box");
+            GUILayout.BeginVertical("box");
 
             if (_nodeMapping.Keys.Count > 20)
             {
-                scrollPos = GUILayout.BeginScrollView (scrollPos, GUILayout.Width (200), GUILayout.Height (500));
+                scrollPos = GUILayout.BeginScrollView(scrollPos, GUILayout.Width(200), GUILayout.Height(500));
             }
 
             foreach (var node in _nodeMapping.Keys)
             {
                 var isSel = _selectedNode != null && _selectedNode == node;
 
-                GUILayout.BeginHorizontal ();
+                GUILayout.BeginHorizontal();
 
-                if (GUILayout.Toggle (isSel, _getNodeName (node), "Button", expandWidth))
+                if (GUILayout.Toggle(isSel, _getNodeName(node), "Button", expandWidth))
                 {
                     _selectedNode = node;
                 }
 
-                GUILayout.EndHorizontal ();
+                GUILayout.EndHorizontal();
             }
 
             if (_nodeMapping.Keys.Count > 20)
             {
-                GUILayout.EndScrollView ();
+                GUILayout.EndScrollView();
             }
 
-            GUILayout.EndVertical ();
+            GUILayout.EndVertical();
 
-            GUI.DragWindow ();
+            GUI.DragWindow();
         }
 
-        protected void WindowGui (int windowID)
+        protected void WindowGui(int windowID)
         {
-            var expandWidth = GUILayout.ExpandWidth (true);
+            var expandWidth = GUILayout.ExpandWidth(true);
 
-            GUILayout.BeginVertical ("box");
+            GUILayout.BeginVertical("box");
 
-            GUILayout.Label ("Attachment Rules: " + _getSelPartAttRulesString ());
+            GUILayout.Label("Attachment Rules: " + _getSelPartAttRulesString());
 
-            var tempArr = new bool [5];
+            var tempArr = new bool[5];
 
-            Array.Copy (_selectedPartRules, tempArr, 5);
+            Array.Copy(_selectedPartRules, tempArr, 5);
 
-            GUILayout.BeginHorizontal ();
+            GUILayout.BeginHorizontal();
 
-            tempArr [0] = GUILayout.Toggle (tempArr [0], "stack", "Button", expandWidth);
-            tempArr [1] = GUILayout.Toggle (tempArr [1], "srfAttach", "Button", expandWidth);
-            tempArr [2] = GUILayout.Toggle (tempArr [2], "allowStack", "Button", expandWidth);
+            tempArr[0] = GUILayout.Toggle(tempArr[0], "stack", "Button", expandWidth);
+            tempArr[1] = GUILayout.Toggle(tempArr[1], "srfAttach", "Button", expandWidth);
+            tempArr[2] = GUILayout.Toggle(tempArr[2], "allowStack", "Button", expandWidth);
 
-            GUILayout.EndHorizontal ();
+            GUILayout.EndHorizontal();
 
-            GUILayout.BeginHorizontal ();
+            GUILayout.BeginHorizontal();
 
-            tempArr [3] = GUILayout.Toggle (tempArr [3], "allowSrfAttach", "Button", expandWidth);
-            tempArr [4] = GUILayout.Toggle (tempArr [4], "allowCollision", "Button", expandWidth);
+            tempArr[3] = GUILayout.Toggle(tempArr[3], "allowSrfAttach", "Button", expandWidth);
+            tempArr[4] = GUILayout.Toggle(tempArr[4], "allowCollision", "Button", expandWidth);
 
-            _processAttachRules (tempArr);
+            _processAttachRules(tempArr);
 
-            GUILayout.EndHorizontal ();
+            GUILayout.EndHorizontal();
 
-            GUILayout.EndVertical ();
+            GUILayout.EndVertical();
 
-            GUILayout.BeginVertical ("box");
+            GUILayout.BeginVertical("box");
 
             if (!_showCreateMenu)
             {
-                _showCreateMenu |= GUILayout.Button ("Show Node Creation");
+                _showCreateMenu |= GUILayout.Button("Show Node Creation");
             }
             else
             {
-                _showCreateMenu &= !GUILayout.Button ("Hide Node Creation");
+                _showCreateMenu &= !GUILayout.Button("Hide Node Creation");
 
-                GUILayout.Label ("Note: New attachment nodes are not automatically saved with the craft file.", GUILayout.ExpandWidth (false));
+                GUILayout.Label("Note: New attachment nodes are not automatically saved with the craft file.", GUILayout.ExpandWidth(false));
 
-                GUILayout.BeginHorizontal ();
+                GUILayout.BeginHorizontal();
 
-                GUILayout.Label ("Add a node", expandWidth);
+                GUILayout.Label("Add a node", expandWidth);
 
-                if (GUILayout.Button ("Create"))
+                if (GUILayout.Button("Create"))
                 {
-                    _createNewNode ();
+                    _createNewNode();
                 }
 
-                GUILayout.EndHorizontal ();
+                GUILayout.EndHorizontal();
 
-                GUILayout.BeginHorizontal ();
+                GUILayout.BeginHorizontal();
 
-                GUILayout.Label ("Name:", expandWidth);
+                GUILayout.Label("Name:", expandWidth);
 
-                _newNodeName = GUILayout.TextField (_newNodeName, GUILayout.Width (120));
+                _newNodeName = GUILayout.TextField(_newNodeName, GUILayout.Width(120));
 
-                GUILayout.EndHorizontal ();
+                GUILayout.EndHorizontal();
 
-                GUILayout.BeginHorizontal ();
+                GUILayout.BeginHorizontal();
 
-                GUILayout.Label ("Pos:", expandWidth);
+                GUILayout.Label("Pos:", expandWidth);
 
-                _newNodePos = GUILayout.TextField (_newNodePos, GUILayout.Width (120));
+                _newNodePos = GUILayout.TextField(_newNodePos, GUILayout.Width(120));
 
-                GUILayout.EndHorizontal ();
+                GUILayout.EndHorizontal();
             }
 
-            GUILayout.EndVertical ();
+            GUILayout.EndVertical();
 
-            GUILayout.BeginVertical ("box");
+            GUILayout.BeginVertical("box");
 
-            GUILayout.BeginHorizontal ();
+            GUILayout.BeginHorizontal();
 
-            GUILayout.Label ("Normal planes", expandWidth);
+            GUILayout.Label("Normal planes", expandWidth);
 
-            _showPlanes [0] = GUILayout.Toggle (_showPlanes [0], "X", "Button");
-            _showPlanes [1] = GUILayout.Toggle (_showPlanes [1], "Y", "Button");
-            _showPlanes [2] = GUILayout.Toggle (_showPlanes [2], "Z", "Button");
+            _showPlanes[0] = GUILayout.Toggle(_showPlanes[0], "X", "Button");
+            _showPlanes[1] = GUILayout.Toggle(_showPlanes[1], "Y", "Button");
+            _showPlanes[2] = GUILayout.Toggle(_showPlanes[2], "Z", "Button");
 
-            GUILayout.EndHorizontal ();
+            GUILayout.EndHorizontal();
 
-            GUILayout.BeginHorizontal ();
+            GUILayout.BeginHorizontal();
 
-            GUILayout.Label ("Radius");
+            GUILayout.Label("Radius");
 
-            _planeRadiusString = GUILayout.TextField (_planeRadiusString, GUILayout.Width (90));
+            _planeRadiusString = GUILayout.TextField(_planeRadiusString, GUILayout.Width(90));
 
-            if (GUILayout.Button ("Set"))
+            if (GUILayout.Button("Set"))
             {
-                _parsePlaneRadius ();
+                _parsePlaneRadius();
             }
 
-            GUILayout.EndHorizontal ();
+            GUILayout.EndHorizontal();
 
-            GUILayout.EndVertical ();
+            GUILayout.EndVertical();
 
-            if (GUILayout.Button ("Write node data") && _selectedPart != null && !_printingActive)
+            if (GUILayout.Button("Write node data") && _selectedPart != null && !_printingActive)
             {
                 _printingActive = true;
 
-                _printNodeConfigForPart (true);
+                _printNodeConfigForPart(true);
             }
 
-            GUI.DragWindow ();
+            GUI.DragWindow();
         }
 
-        void _cleanSelectedPartSetup ()
+        void _cleanSelectedPartSetup()
         {
             if (_selectedPart == null)
             {
                 return;
             }
 
-            _selectedPart.SetHighlightDefault ();
+            _selectedPart.SetHighlightDefault();
         }
 
-        void _clearMapping (bool deselect = true)
+        void _clearMapping(bool deselect = true)
         {
             if (!_initialized)
             {
                 return;
             }
 
-            _orientationPointer.SetActive (false);
+            _orientationPointer.SetActive(false);
 
             foreach (var kv in _nodeMapping)
             {
-                Destroy (kv.Value);
+                Destroy(kv.Value);
             }
 
-            _nodeMapping.Clear ();
+            _nodeMapping.Clear();
 
-            _nodeNameMapping.Clear ();
+            _nodeNameMapping.Clear();
 
             for (var i = 0; i < 3; i++)
             {
-                _showPlanes [i] = false;
+                _showPlanes[i] = false;
 
-                _planes [i].SetActive (false);
+                _planes[i].SetActive(false);
             }
 
             if (deselect)
             {
                 _selectedPart = null;
                 _selectedNode = null;
-                _selectedPartRules = new bool [5];
+                _selectedPartRules = new bool[5];
             }
         }
 
 
-        List<Tuple<string, string>> _constructNodeValues ()
+        List<Tuple<string, string>> _constructNodeValues()
         {
             var nameList = new List<AttachNode>(_selectedPart.attachNodes.Count + 1);
 
-            nameList.AddRange (_selectedPart.attachNodes);
+            nameList.AddRange(_selectedPart.attachNodes);
 
-            var retList = _uniquifyNames (nameList).Select (attachNode => _nodeToString (attachNode.Key, attachNode.Value)).ToList ();
+            var retList = _uniquifyNames(nameList).Select(attachNode => _nodeToString(attachNode.Key, attachNode.Value)).ToList();
 
             if (_selectedPart.srfAttachNode != null)
             {
-                retList.Add (_nodeToString (_selectedPart.srfAttachNode, string.Empty, false));
+                retList.Add(_nodeToString(_selectedPart.srfAttachNode, string.Empty, false));
             }
 
             return retList;
         }
 
-        void _createNewNode ()
+        void _createNewNode()
         {
             try
             {
-                if (string.IsNullOrEmpty (_newNodeName))
+                if (string.IsNullOrEmpty(_newNodeName))
                 {
-                    OSD.PostMessageUpperCenter ("[NH]: Name for new attachment node empty!");
+                    OSD.PostMessageUpperCenter("[NH]: Name for new attachment node empty!");
 
                     return;
                 }
 
-                var pos = KSPUtil.ParseVector3 (_newNodePos);
+                var pos = KSPUtil.ParseVector3(_newNodePos);
 
                 var an = new AttachNode
                 {
@@ -874,58 +920,58 @@ namespace NodeHelper_ns
                     position = pos,
                     nodeType = AttachNode.NodeType.Stack,
                     size = 1,
-                    id = _findUniqueId (_newNodeName),
+                    id = _findUniqueId(_newNodeName),
                     attachMethod = AttachNodeMethod.FIXED_JOINT,
                     nodeTransform = _selectedPart.transform,
                     orientation = _selectedPart.transform.up
                 };
 
-                _selectedPart.attachNodes.Add (an);
+                _selectedPart.attachNodes.Add(an);
 
-                _clearMapping (false);
+                _clearMapping(false);
 
-                OSD.PostMessageUpperCenter ("[NH]: New attachment node created!");
+                OSD.PostMessageUpperCenter("[NH]: New attachment node created!");
             }
             catch (Exception e)
             {
-                Debug.Log ("[NH]: Creating new node threw exception: " + e.Message);
+                Debug.Log("[NH]: Creating new node threw exception: " + e.Message);
 
-                OSD.PostMessageUpperCenter ("[NH]: Unable to create node, please check vector format!");
+                OSD.PostMessageUpperCenter("[NH]: Unable to create node, please check vector format!");
             }
         }
 
-        void _createPlanes ()
+        void _createPlanes()
         {
             for (var i = 0; i < 3; i++)
             {
-                _planes [i] = UI.CreatePrimitive (PrimitiveType.Cube, _planeColor, new Vector3 (1f, 1f, 1f), false, "Helper Plane", TransShader);
+                _planes[i] = UI.CreatePrimitive(PrimitiveType.Cube, _planeColor, new Vector3(1f, 1f, 1f), false, "Helper Plane", TransShader);
             }
         }
 
-        void _deleteCurrNode ()
+        void _deleteCurrNode()
         {
             if (_selectedNode == null)
             {
                 return;
             }
 
-            _selectedPart.attachNodes.Remove (_selectedNode);
+            _selectedPart.attachNodes.Remove(_selectedNode);
 
-            _clearMapping (false);
+            _clearMapping(false);
 
             _selectedNode = null;
 
-            OSD.PostMessageUpperCenter ("NodeHelper: Attachment node deleted...");
+            OSD.PostMessageUpperCenter("NodeHelper: Attachment node deleted...");
         }
 
-        string _findUniqueId (string newNodeName)
+        string _findUniqueId(string newNodeName)
         {
-            if (_nodeNameMapping.Keys.All (k => k.id != newNodeName))
+            if (_nodeNameMapping.Keys.All(k => k.id != newNodeName))
             {
                 return newNodeName;
             }
 
-            var sameNameCount = _nodeNameMapping.Keys.Count (k => k.id.Contains (newNodeName));
+            var sameNameCount = _nodeNameMapping.Keys.Count(k => k.id.Contains(newNodeName));
 
             sameNameCount++;
 
@@ -939,9 +985,9 @@ namespace NodeHelper_ns
         /// <returns>The position of last significant position after 0.
         /// </returns>
 
-        static int _floatPrecision (float inNr)
+        static int _floatPrecision(float inNr)
         {
-            inNr = Mathf.Abs (inNr);
+            inNr = Mathf.Abs(inNr);
 
             var cnt = 0;
 
@@ -955,100 +1001,100 @@ namespace NodeHelper_ns
             return cnt;
         }
 
-        static string _formatNumberForOutput (float inputNumber)
+        static string _formatNumberForOutput(float inputNumber)
         {
-            var precision = Mathf.Clamp (_floatPrecision (inputNumber), 1, 5);
+            var precision = Mathf.Clamp(_floatPrecision(inputNumber), 1, 5);
             var formatString = "{0:F" + precision + "}";
-            var trimmedString = string.Format (formatString, inputNumber).TrimEnd ('0');
+            var trimmedString = string.Format(formatString, inputNumber).TrimEnd('0');
 
-            if (trimmedString [trimmedString.Length - 1] == '.' || trimmedString [trimmedString.Length - 1] == ',')
-            if (trimmedString [trimmedString.Length - 1] == '.' || trimmedString [trimmedString.Length - 1] == ',')
-            {
-                trimmedString = trimmedString + "0";
-            }
+            if (trimmedString[trimmedString.Length - 1] == '.' || trimmedString[trimmedString.Length - 1] == ',')
+                if (trimmedString[trimmedString.Length - 1] == '.' || trimmedString[trimmedString.Length - 1] == ',')
+                {
+                    trimmedString = trimmedString + "0";
+                }
 
             return trimmedString;
         }
 
-        string _getNodeName (AttachNode node)
+        string _getNodeName(AttachNode node)
         {
-            return (_nodeNameMapping.ContainsKey (node)) ? _nodeNameMapping [node] : string.Empty;
+            return (_nodeNameMapping.ContainsKey(node)) ? _nodeNameMapping[node] : string.Empty;
         }
 
-        string _getSelPartAttRulesString ()
+        string _getSelPartAttRulesString()
         {
-            var sb = new StringBuilder (9);
+            var sb = new StringBuilder(9);
 
             for (var i = 0; i < 5; i++)
             {
-                var val = _selectedPartRules [i] ? 1 : 0;
+                var val = _selectedPartRules[i] ? 1 : 0;
 
-                sb.Append (val);
+                sb.Append(val);
 
                 if (i < 4)
                 {
-                    sb.Append (",");
+                    sb.Append(",");
                 }
             }
 
-            return sb.ToString ();
+            return sb.ToString();
         }
 
         void _moveNode(MoveDirs moveDir, bool positive)
         {
             if (_selectedNode == null)
             {
-                Debug.Log ("[NH]: No attachment node selected!");
+                Debug.Log("[NH]: No attachment node selected!");
 
                 return;
             }
 
-            var debugtext = new StringBuilder (5);
+            var debugtext = new StringBuilder(5);
 
-            debugtext.Append (_getNodeName (_selectedNode));
+            debugtext.Append(_getNodeName(_selectedNode));
 
             var newPos = _selectedNode.position;
             var sw = positive ? _stepWidth : _stepWidth * -1f;
 
-            debugtext.Append (sw);
-            debugtext.Append (" into ");
+            debugtext.Append(sw);
+            debugtext.Append(" into ");
 
             switch (moveDir)
             {
                 case MoveDirs.X:
-                {
-                    newPos = new Vector3 (newPos.x + sw, newPos.y, newPos.z);
+                    {
+                        newPos = new Vector3(newPos.x + sw, newPos.y, newPos.z);
 
-                    debugtext.Append ("x position");
-                }
+                        debugtext.Append("x position");
+                    }
 
-                break;
+                    break;
 
                 case MoveDirs.Y:
-                {
-                    newPos = new Vector3 (newPos.x, newPos.y + sw, newPos.z);
+                    {
+                        newPos = new Vector3(newPos.x, newPos.y + sw, newPos.z);
 
-                    debugtext.Append ("y position");
-                }
+                        debugtext.Append("y position");
+                    }
 
-                break;
+                    break;
 
                 default:
-                {
-                    newPos = new Vector3 (newPos.x, newPos.y, newPos.z + sw);
+                    {
+                        newPos = new Vector3(newPos.x, newPos.y, newPos.z + sw);
 
-                    debugtext.Append ("z position");
-                }
+                        debugtext.Append("z position");
+                    }
 
-                break;
+                    break;
             }
 
-            Debug.Log (debugtext.ToString ());
+            Debug.Log(debugtext.ToString());
 
-            _setToPos (newPos);
+            _setToPos(newPos);
         }
 
-        static Tuple<string, string> _nodeToString (AttachNode node, string id, bool stack = true)
+        static Tuple<string, string> _nodeToString(AttachNode node, string id, bool stack = true)
         {
             const string delim = ", ";
 
@@ -1063,40 +1109,40 @@ namespace NodeHelper_ns
                 retKey = "node_attach";
             }
 
-            var sb = new StringBuilder ();
+            var sb = new StringBuilder();
             var pos = node.position;
             var or = node.orientation;
 
-            sb.Append (_formatNumberForOutput (pos.x));
-            sb.Append (delim);
-            sb.Append (_formatNumberForOutput (pos.y));
-            sb.Append (delim);
-            sb.Append (_formatNumberForOutput (pos.z));
-            sb.Append (delim);
-            sb.Append (_formatNumberForOutput (or.x));
-            sb.Append (delim);
-            sb.Append (_formatNumberForOutput (or.y));
-            sb.Append (delim);
-            sb.Append (_formatNumberForOutput (or.z));
+            sb.Append(_formatNumberForOutput(pos.x));
+            sb.Append(delim);
+            sb.Append(_formatNumberForOutput(pos.y));
+            sb.Append(delim);
+            sb.Append(_formatNumberForOutput(pos.z));
+            sb.Append(delim);
+            sb.Append(_formatNumberForOutput(or.x));
+            sb.Append(delim);
+            sb.Append(_formatNumberForOutput(or.y));
+            sb.Append(delim);
+            sb.Append(_formatNumberForOutput(or.z));
 
             if (node.size >= 0)
             {
-                sb.Append (delim);
-                sb.Append (node.size);
+                sb.Append(delim);
+                sb.Append(node.size);
             }
 
-            return new Tuple<string, string>(retKey, sb.ToString ());
+            return new Tuple<string, string>(retKey, sb.ToString());
         }
 
-        static string _normalizePartName (string messedupName)
+        static string _normalizePartName(string messedupName)
         {
-            var delim = new [] {"(Clone"};
-            var parts = messedupName.Split (delim, StringSplitOptions.None);
+            var delim = new[] { "(Clone" };
+            var parts = messedupName.Split(delim, StringSplitOptions.None);
 
-            return parts [0];
+            return parts[0];
         }
 
-        void _orientNodeToCust ()
+        void _orientNodeToCust()
         {
             if (_selectedNode == null)
             {
@@ -1105,100 +1151,100 @@ namespace NodeHelper_ns
 
             try
             {
-                var custOr = KSPUtil.ParseVector3 (_nodeOrientationCust);
+                var custOr = KSPUtil.ParseVector3(_nodeOrientationCust);
 
                 _selectedNode.orientation = custOr;
             }
             catch (Exception)
             {
-                OSD.PostMessageUpperCenter ("NodeHelper: Unable to set attachment node orientation, please check vector format!");
+                OSD.PostMessageUpperCenter("NodeHelper: Unable to set attachment node orientation, please check vector format!");
             }
         }
 
-        void _parsePlaneRadius ()
+        void _parsePlaneRadius()
         {
             float pr;
 
-            if (float.TryParse (_planeRadiusString, out pr))
+            if (float.TryParse(_planeRadiusString, out pr))
             {
-                pr = Mathf.Abs (pr);
+                pr = Mathf.Abs(pr);
             }
 
             _planeRadius = pr;
-            _planeRadiusString = _formatNumberForOutput (pr);
+            _planeRadiusString = _formatNumberForOutput(pr);
         }
 
-        void _parseStepWidth ()
+        void _parseStepWidth()
         {
             var psw = 0f;
 
             float sw;
 
-            if (float.TryParse (_stepWidthString, out sw))
+            if (float.TryParse(_stepWidthString, out sw))
             {
-                psw = Mathf.Abs (sw);
+                psw = Mathf.Abs(sw);
             }
 
             _stepWidth = psw;
-            _stepWidthString = _formatNumberForOutput (psw);
+            _stepWidthString = _formatNumberForOutput(psw);
         }
 
-        void _printNodeConfigForPart (bool simple = false)
+        void _printNodeConfigForPart(bool simple = false)
         {
             try
             {
-                var normName = _normalizePartName (_selectedPart.name);
+                var normName = _normalizePartName(_selectedPart.name);
 
-                var cfg = GameDatabase.Instance.root.AllConfigs.Where (c => c.name == normName).Select (c => c).FirstOrDefault ();
+                var cfg = GameDatabase.Instance.root.AllConfigs.Where(c => c.name == normName).Select(c => c).FirstOrDefault();
 
-                if (cfg != null && !string.IsNullOrEmpty (cfg.url))
+                if (cfg != null && !string.IsNullOrEmpty(cfg.url))
                 {
                     var oldConf = cfg.config;
 
-                    oldConf.RemoveValuesStartWith ("node_");
+                    oldConf.RemoveValuesStartWith("node_");
 
                     var newConf = oldConf;
-                    var nodeAttributes = _constructNodeValues ();
+                    var nodeAttributes = _constructNodeValues();
 
                     foreach (var nodeValue in nodeAttributes)
                     {
-                        newConf.AddValue (nodeValue.Item1, nodeValue.Item2);
+                        newConf.AddValue(nodeValue.Item1, nodeValue.Item2);
                     }
 
-                    var cfgurl = _stripUrl (cfg.url, cfg.name);
+                    var cfgurl = _stripUrl(cfg.url, cfg.name);
                     var path = KSPUtil.ApplicationRootPath + "/GameData/" + cfgurl + "_NH.cfg";
 
                     if (!simple)
                     {
-                        File.WriteAllText (path, newConf.ToString ());
+                        File.WriteAllText(path, newConf.ToString());
                     }
                     else
                     {
-                        var text = new StringBuilder ();
+                        var text = new StringBuilder();
 
                         foreach (var nodeAttribute in nodeAttributes)
                         {
-                            text.Append (nodeAttribute.Item1);
-                            text.Append (" = ");
-                            text.Append (nodeAttribute.Item2);
-                            text.Append (Environment.NewLine);
+                            text.Append(nodeAttribute.Item1);
+                            text.Append(" = ");
+                            text.Append(nodeAttribute.Item2);
+                            text.Append(Environment.NewLine);
                         }
 
                         if (_selectedPart != null)
                         {
-                            text.Append (Environment.NewLine);
-                            text.Append ("attachRules = ");
-                            text.Append (_getSelPartAttRulesString ());
-                            text.Append (Environment.NewLine);
+                            text.Append(Environment.NewLine);
+                            text.Append("attachRules = ");
+                            text.Append(_getSelPartAttRulesString());
+                            text.Append(Environment.NewLine);
                         }
 
-                        File.WriteAllText (path, text.ToString ());
+                        File.WriteAllText(path, text.ToString());
                     }
                 }
             }
             catch (Exception e)
             {
-                Debug.Log ("[NH]: Writing attachment node file threw exception: " + e.Message);
+                Debug.Log("[NH]: Writing attachment node file threw exception: " + e.Message);
             }
             finally
             {
@@ -1206,7 +1252,7 @@ namespace NodeHelper_ns
             }
         }
 
-        void _processAttachRules (bool [] tempArr)
+        void _processAttachRules(bool[] tempArr)
         {
             if (_selectedPart == null || _selectedPart.attachRules == null)
             {
@@ -1216,61 +1262,61 @@ namespace NodeHelper_ns
             var arr = _selectedPartRules;
             var pr = _selectedPart.attachRules;
 
-            if (arr [0] != tempArr [0])
+            if (arr[0] != tempArr[0])
             {
                 pr.stack = !pr.stack;
             }
 
-            if (arr [1] != tempArr [1])
+            if (arr[1] != tempArr[1])
             {
                 pr.srfAttach = !pr.srfAttach;
             }
 
-            if (arr [2] != tempArr [2])
+            if (arr[2] != tempArr[2])
             {
                 pr.allowStack = !pr.allowStack;
             }
 
-            if (arr [3] != tempArr [3])
+            if (arr[3] != tempArr[3])
             {
                 pr.allowSrfAttach = !pr.allowSrfAttach;
             }
 
-            if (arr [4] != tempArr [4])
+            if (arr[4] != tempArr[4])
             {
                 pr.allowCollision = !pr.allowCollision;
             }
         }
 
-        void _processPlanes ()
+        void _processPlanes()
         {
             var center = _selectedPart.transform.position;
             var up = _selectedPart.transform.up;
 
             if (_selectedNode != null)
             {
-                center = _selectedPart.transform.TransformPoint (_selectedNode.position);
+                center = _selectedPart.transform.TransformPoint(_selectedNode.position);
                 up = _selectedNode.orientation;
 
                 var size = _selectedNode.size;
 
-                _positionOrientationPointer (center, up, size);
+                _positionOrientationPointer(center, up, size);
             }
             else
             {
-                _orientationPointer.SetActive (false);
+                _orientationPointer.SetActive(false);
             }
 
             for (var i = 0; i < 3; i++)
             {
-                var plane = _planes [i];
+                var plane = _planes[i];
                 var pT = plane.transform;
 
-                if (!_showPlanes [i])
+                if (!_showPlanes[i])
                 {
-                    plane.SetActive (false);
+                    plane.SetActive(false);
 
-                    pT.localScale = new Vector3 (1f, 1f, 1f);
+                    pT.localScale = new Vector3(1f, 1f, 1f);
 
                     continue;
                 }
@@ -1280,7 +1326,7 @@ namespace NodeHelper_ns
 
                 var diameter = _planeRadius * 2f;
 
-                pT.localScale = new Vector3 (diameter, 0.01f, diameter);
+                pT.localScale = new Vector3(diameter, 0.01f, diameter);
 
                 var rotVec = Vector3.zero;
 
@@ -1288,68 +1334,68 @@ namespace NodeHelper_ns
                 {
                     case 2:
 
-                        rotVec = new Vector3 (90f, 0f, 0f);
+                        rotVec = new Vector3(90f, 0f, 0f);
 
-                    break;
+                        break;
 
                     case 0:
 
-                        rotVec = new Vector3 (0f, 0f, 90f);
+                        rotVec = new Vector3(0f, 0f, 90f);
 
-                    break;
+                        break;
                 }
 
-                pT.Rotate (rotVec);
+                pT.Rotate(rotVec);
 
-                plane.SetActive (true);
+                plane.SetActive(true);
             }
         }
 
-        void _positionOrientationPointer (Vector3 center, Vector3 up, float size)
+        void _positionOrientationPointer(Vector3 center, Vector3 up, float size)
         {
             _orientationPointer.transform.up = up;
             _orientationPointer.transform.position = center;
-            _orientationPointer.transform.Translate (0f, size * 0.2f + 0.6f, 0f);
+            _orientationPointer.transform.Translate(0f, size * 0.2f + 0.6f, 0f);
 
             if (_showOrientationPointer)
             {
-                _orientationPointer.SetActive (true);
+                _orientationPointer.SetActive(true);
             }
             else
             {
-                _orientationPointer.SetActive (false);
+                _orientationPointer.SetActive(false);
             }
         }
 
-        void _resetCurrNode ()
+        void _resetCurrNode()
         {
-            if (_nodePosBackup.ContainsKey (_selectedNode))
+            if (_nodePosBackup.ContainsKey(_selectedNode))
             {
-                _setToPos (_nodePosBackup [_selectedNode]);
+                _setToPos(_nodePosBackup[_selectedNode]);
 
-                OSD.PostMessageUpperCenter ("NodeHelper: Attachment node position reset.");
+                OSD.PostMessageUpperCenter("NodeHelper: Attachment node position reset.");
             }
 
-            Debug.Log ("[NH]: Failed to reset attachment node to backup position!");
+            Debug.Log("[NH]: Failed to reset attachment node to backup position!");
         }
 
-        void _setToPos ()
+        void _setToPos()
         {
             try
             {
-                var nPos = KSPUtil.ParseVector3 (_targetPos);
+                var nPos = KSPUtil.ParseVector3(_targetPos);
 
-                _setToPos (nPos);
+                _setToPos(nPos);
             }
             catch (Exception e)
             {
-                Debug.Log ("[NH]: setToPos threw exception: " + e.Message);
+                Debug.Log("[NH]: setToPos threw exception: " + e.Message);
 
-                OSD.PostMessageUpperCenter ("NodeHelper: Unable to set attachment node position, please check vector format!");
+                OSD.PostMessageUpperCenter("NodeHelper: Unable to set attachment node position, please check vector format!");
             }
         }
 
-        void _setToPos (Vector3 newPos)
+        void _setToPos(Vector3 newPos)
         {
             var currPos = _selectedNode.position;
             var delta = newPos - currPos;
@@ -1370,40 +1416,40 @@ namespace NodeHelper_ns
                 return;
             }
 
-            _selectedPart.SetHighlightColor (Color.blue);
+            _selectedPart.SetHighlightColor(Color.blue);
 
-            _selectedPart.SetHighlight (true, false);
+            _selectedPart.SetHighlight(true, false);
         }
 
-        static string _stripUrl (string url, string stripName)
+        static string _stripUrl(string url, string stripName)
         {
             var nameLength = stripName.Length;
             var urlLength = url.Length - nameLength - 1;
 
-            return url.Substring (0, urlLength);
+            return url.Substring(0, urlLength);
         }
 
-        static Dictionary<AttachNode, string> _uniquifyNames (ICollection<AttachNode> nodes)
+        static Dictionary<AttachNode, string> _uniquifyNames(ICollection<AttachNode> nodes)
         {
             var nameDic = new Dictionary<AttachNode, string>(nodes.Count);
 
             foreach (var attachNode in nodes)
             {
                 var n = attachNode.id;
-                var cnt = nameDic.Values.Count (v => v == attachNode.id);
+                var cnt = nameDic.Values.Count(v => v == attachNode.id);
 
                 if (cnt > 0)
                 {
                     n = n + "_" + (cnt + 1);
                 }
 
-                nameDic.Add (attachNode, n);
+                nameDic.Add(attachNode, n);
             }
 
             return nameDic;
         }
 
-        void _updateAttachRules ()
+        void _updateAttachRules()
         {
             if (_selectedPart == null || _selectedPart.attachRules == null)
             {
@@ -1413,14 +1459,14 @@ namespace NodeHelper_ns
             var arr = _selectedPartRules;
             var pr = _selectedPart.attachRules;
 
-            arr [0] = pr.stack;
-            arr [1] = pr.srfAttach;
-            arr [2] = pr.allowStack;
-            arr [3] = pr.allowSrfAttach;
-            arr [4] = pr.allowCollision;
+            arr[0] = pr.stack;
+            arr[1] = pr.srfAttach;
+            arr[2] = pr.allowStack;
+            arr[3] = pr.allowSrfAttach;
+            arr[4] = pr.allowCollision;
         }
 
-        static void _updateGoColor (GameObject go, Color color)
+        static void _updateGoColor(GameObject go, Color color)
         {
             var mr = go.GetComponent<MeshRenderer>();
 
@@ -1430,11 +1476,11 @@ namespace NodeHelper_ns
             }
         }
 
-        void _updateMapping ()
+        void _updateMapping()
         {
-            foreach (var attachNode in _selectedPart.attachNodes.Where (an => an != null))
+            foreach (var attachNode in _selectedPart.attachNodes.Where(an => an != null))
             {
-                if (_nodeMapping.ContainsKey (attachNode))
+                if (_nodeMapping.ContainsKey(attachNode))
                 {
                     continue;
                 }
@@ -1444,35 +1490,35 @@ namespace NodeHelper_ns
                     continue;
                 }
 
-                var scale = GetGoScaleForNode (attachNode);
+                var scale = GetGoScaleForNode(attachNode);
 
-                var go = UI.CreatePrimitive (PrimitiveType.Sphere, _nodeColor, scale, true, "Helper Node", TransShader);
+                var go = UI.CreatePrimitive(PrimitiveType.Sphere, _nodeColor, scale, true, "Helper Node", TransShader);
 
                 go.GetComponent<MeshRenderer>().material = _nodeMaterial;
 
-                go.transform.SetParent (_selectedPart.transform);
+                go.transform.SetParent(_selectedPart.transform);
 
-                _nodeMapping.Add (attachNode, go);
+                _nodeMapping.Add(attachNode, go);
 
-                _nodeNameMapping.Add (attachNode, attachNode.id);
+                _nodeNameMapping.Add(attachNode, attachNode.id);
 
-                if (!_nodePosBackup.ContainsKey (attachNode))
+                if (!_nodePosBackup.ContainsKey(attachNode))
                 {
-                    _nodePosBackup.Add (attachNode, attachNode.position);
+                    _nodePosBackup.Add(attachNode, attachNode.position);
                 }
             }
         }
 
-        void _updateResetPosCurrNode ()
+        void _updateResetPosCurrNode()
         {
-            if (_nodePosBackup.ContainsKey (_selectedNode))
+            if (_nodePosBackup.ContainsKey(_selectedNode))
             {
-                _nodePosBackup [_selectedNode] = _selectedNode.position;
+                _nodePosBackup[_selectedNode] = _selectedNode.position;
 
-                OSD.PostMessageUpperCenter ("NodeHelper: Node attachment position updated.");
+                OSD.PostMessageUpperCenter("NodeHelper: Node attachment position updated.");
             }
 
-            Debug.Log ("[NH]: Failed to update attachment node backup position!");
+            Debug.Log("[NH]: Failed to update attachment node backup position!");
         }
 
         enum MoveDirs
