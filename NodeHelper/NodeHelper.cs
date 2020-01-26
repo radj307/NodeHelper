@@ -51,8 +51,6 @@ namespace NodeHelper_ns
 
         Part _selectedPart;
 
-        ConfigNode _settings;
-
         GameObject _orientationPointer;
         GameObject[] _planes;
 
@@ -93,9 +91,10 @@ namespace NodeHelper_ns
         //  Need to add code to make sure window isn't off - screen when loading options.
         //  Also need to make sure WindowPos isn't off - screen at start.
 
-        Rect nodeListPos = new Rect(315, 100, 160, 40);
-        Rect windowPos = new Rect(1375, 80, 160, 40);
-        Rect nodeEditPos = new Rect(315, 470, 160, 40);
+         Rect nodeListPos = new Rect(315, 100, 160, 40);
+         Rect windowPos = new Rect(1375, 80, 160, 40);
+         Rect nodeEditPos = new Rect(315, 470, 160, 40);
+        Rect oldNodeListPos, oldWindowPos, oldNodeEditPos;
 
         static Vector3 GetGoScaleForNode(AttachNode attachNode)
         {
@@ -108,7 +107,7 @@ namespace NodeHelper_ns
             {
                 _selectedPart.SetHighlightDefault();
             }
-
+            SavePosition();
             _clearMapping();
         }
 
@@ -130,15 +129,8 @@ namespace NodeHelper_ns
         public void OnDestroy()
         {
             GameEvents.onPartActionUIDismiss.Remove(HandleActionMenuClosed);
-
             GameEvents.onPartActionUICreate.Remove(HandleActionMenuOpened);
 
-#if false
-            if (btnLauncher != null)
-            {
-                ApplicationLauncher.Instance.RemoveModApplication(btnLauncher);
-            }
-#endif
             if (toolbarControl != null)
             {
                 toolbarControl.OnDestroy();
@@ -146,9 +138,9 @@ namespace NodeHelper_ns
             }
         }
 
-        void HandleWindow(ref Rect position, int id, string windowname, GUI.WindowFunction func)
+        void HandleWindow(ref Rect windowPosition, int id, string windowname, GUI.WindowFunction func)
         {
-            position = ClickThruBlocker.GUILayoutWindow(GetType().FullName.GetHashCode() + id, position, func, windowname, GUILayout.Width(200), GUILayout.Height(20));
+            windowPosition = ClickThruBlocker.GUILayoutWindow(GetType().FullName.GetHashCode() + id, windowPosition, func, windowname, GUILayout.Width(200), GUILayout.Height(20));
         }
 
         public void OnGUI()
@@ -211,110 +203,95 @@ namespace NodeHelper_ns
             {
                 HandleWindow(ref nodeEditPos, 2, "Node Helper - Edit Node", NodeEditGui);
             }
+            if (!Rect.Equals(oldNodeListPos, nodeListPos) ||
+                !Rect.Equals(oldWindowPos, windowPos) ||
+                !Rect.Equals(oldNodeEditPos, nodeEditPos))
+            {
+                SavePosition();
+                SaveOldPositions();
+            }
+
+        }
+
+        void SaveOldPositions()
+        {
+            oldNodeListPos = new Rect(nodeListPos);
+            oldWindowPos =new Rect( windowPos);
+            oldNodeEditPos = new Rect(nodeEditPos);
+        }
+
+        string ConfigPath { get { return KSPUtil.ApplicationRootPath + "GameData" + Path.AltDirectorySeparatorChar + "NodeHelper" + Path.AltDirectorySeparatorChar + "PluginData" + Path.AltDirectorySeparatorChar + "NH_Settings_Config.cfg"; } }
+        const string LISTWIN = "ListWindow";
+        const string NODEWIN = "NodeWindow";
+        const string PARTWIN = "PartWindow";
+        public void SavePosition()
+        {
+            ConfigNode ConfigNodeSettings = new ConfigNode();
+
+            ConfigNode NodeHelperSettings = ConfigNodeSettings.AddNode("NodeHelperSettings");
+
+            ConfigNode ListWindowNode = NodeHelperSettings.AddNode(LISTWIN);
+
+            ListWindowNode.AddValue("x", nodeListPos.x);
+            ListWindowNode.AddValue("y", nodeListPos.y);
+
+            ConfigNode NodeWindowNode = NodeHelperSettings.AddNode(NODEWIN);
+
+            NodeWindowNode.AddValue("x", nodeEditPos.x);
+            NodeWindowNode.AddValue("y", nodeEditPos.x);
+
+            ConfigNode PartWindowNode = NodeHelperSettings.AddNode(PARTWIN);
+
+            PartWindowNode.AddValue("x", windowPos.x);
+            PartWindowNode.AddValue("y", windowPos.y);
+
+            ConfigNodeSettings.Save(ConfigPath);
         }
 
         public void Start()
         {
-            _settings = GameDatabase.Instance.GetConfigNodes("NodeHelperSettings").FirstOrDefault();
-
-            if (_settings != null)
+            if (File.Exists(ConfigPath))
             {
-                int coord;
+                ConfigNode _settings = ConfigNode.Load(ConfigPath);
 
-                if (int.TryParse(_settings.GetNode("ListWindow").GetValue("x"), out coord))
+                if (_settings != null)
                 {
-                    nodeListPos.x = coord;
-                }
+                    int coord;
+                    ConfigNode NodeHelperSettings = _settings.GetNode("NodeHelperSettings");
 
-                if (int.TryParse(_settings.GetNode("ListWindow").GetValue("y"), out coord))
-                {
-                    nodeListPos.y = coord;
-                }
+                    if (NodeHelperSettings.HasNode(LISTWIN))
+                    {
+                        if (int.TryParse(NodeHelperSettings.GetNode(LISTWIN).GetValue("x"), out coord))
+                            Debug.Log("LISTWIN.x: " + coord);
+                    }
+                    if (int.TryParse(NodeHelperSettings.GetNode(LISTWIN).GetValue("x"), out coord))
+                        nodeListPos.x = coord;
 
-                if (int.TryParse(_settings.GetNode("PartWindow").GetValue("x"), out coord))
-                {
-                    windowPos.x = coord;
-                }
+                    if (int.TryParse(NodeHelperSettings.GetNode(LISTWIN).GetValue("y"), out coord))
+                        nodeListPos.y = coord;
 
-                if (int.TryParse(_settings.GetNode("PartWindow").GetValue("y"), out coord))
-                {
-                    windowPos.y = coord;
-                }
+                    if (int.TryParse(NodeHelperSettings.GetNode(NODEWIN).GetValue("x"), out coord))
+                        nodeEditPos.x = coord;
 
-                if (int.TryParse(_settings.GetNode("NodeWindow").GetValue("x"), out coord))
-                {
-                    nodeEditPos.x = coord;
-                }
+                    if (int.TryParse(NodeHelperSettings.GetNode(NODEWIN).GetValue("y"), out coord))
+                        nodeEditPos.y = coord;
 
-                if (int.TryParse(_settings.GetNode("NodeWindow").GetValue("y"), out coord))
-                {
-                    nodeEditPos.y = coord;
+                    if (int.TryParse(NodeHelperSettings.GetNode(PARTWIN).GetValue("x"), out coord))
+                        windowPos.x = coord;
+
+                    if (int.TryParse(NodeHelperSettings.GetNode(PARTWIN).GetValue("y"), out coord))
+                        windowPos.y = coord;
                 }
             }
             else
-            {
-                string ConfigFilePath = KSPUtil.ApplicationRootPath + "GameData" + Path.AltDirectorySeparatorChar + "NodeHelper" + Path.AltDirectorySeparatorChar + "Configs" + Path.AltDirectorySeparatorChar + "NodeHelper_Settings.cfg";
+                SavePosition();
 
-                var ConfigNodeSettings = new ConfigNode();
+            SaveOldPositions();
 
-                var NodeHelperSettings = ConfigNodeSettings.AddNode("NodeHelperSettings");
-
-                var ListWindowNode = NodeHelperSettings.AddNode("ListWindow");
-
-                ListWindowNode.AddValue("x", 100);
-                ListWindowNode.AddValue("y", 100);
-
-                var NodeWindowNode = NodeHelperSettings.AddNode("NodeWindow");
-
-                NodeWindowNode.AddValue("x", 300);
-                NodeWindowNode.AddValue("y", 300);
-
-                var PartWindowNode = NodeHelperSettings.AddNode("PartWindow");
-
-                PartWindowNode.AddValue("x", 200);
-                PartWindowNode.AddValue("y", 200);
-
-                ConfigNodeSettings.Save(ConfigFilePath);
-            }
-
-#if false
-            bool UseBlizzyToolbar = HighLogic.CurrentGame.Parameters.CustomParams<NodeHelper>()._blizzyToolbar;
-
-            if (UseBlizzyToolbar.Equals(false))
-            {
-                if (btnLauncher == null)
-                {
-                    btnLauncher = ApplicationLauncher.Instance.AddModApplication(
-                        () => _show = !_show, 
-                        () => _show = !_show, 
-                        null, null, null, null, 
-                        ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.SPH, 
-                        GameDatabase.Instance.GetTexture(ToolbarButtonTexture, false));
-                }
-            }
-            else
-            {
-                if (Utilities.ToolbarManager.Instance == null)
-                {
-                    _nodeHelperButton = Utilities.ToolbarManager.Instance.Add("NodeHelper", "NodeHelperButton");
-
-                    _nodeHelperButton.TexturePath = ToolbarButtonTexture;
-                    _nodeHelperButton.ToolTip = "NodeHelper";
-
-                    _nodeHelperButton.Visibility = new Utilities.GameScenesVisibility(GameScenes.EDITOR);
-
-                    _nodeHelperButton.OnClick += (e => _show = !_show);
-                }
-                else
-                {
-                    return;
-                }
-            }
-#endif
             toolbarControl = this.gameObject.AddComponent<ToolbarControl>();
             toolbarControl.AddToAllToolbars(
                 () => _show = !_show,
-                () => _show = !_show,            
+                () => _show = !_show,
                 ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.SPH,
                 MODID,
                 "NodeHelperButton",
@@ -408,6 +385,7 @@ namespace NodeHelper_ns
             }
             else
             {
+
                 _cleanupCounter = CleanupInterval;
 
                 foreach (var affectedPart in _affectedParts.Where(affectedPart => _selectedPart == null || affectedPart != _selectedPart))
@@ -670,6 +648,13 @@ namespace NodeHelper_ns
                     _orientNodeToCust();
                 }
 
+                GUILayout.EndHorizontal();
+                GUILayout.BeginHorizontal();
+
+                _selectedNode.ResourceXFeed = GUILayout.Toggle(_selectedNode.ResourceXFeed, "X-feed");
+                GUILayout.FlexibleSpace();
+                _selectedNode.rigid = GUILayout.Toggle(_selectedNode.rigid, "Rigid");
+                GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
 
                 _showOrientationPointer = GUILayout.Toggle(_showOrientationPointer, "Show Orientation Pointer", "Button", expandWidth);
@@ -1125,11 +1110,23 @@ namespace NodeHelper_ns
             sb.Append(delim);
             sb.Append(_formatNumberForOutput(or.z));
 
-            if (node.size >= 0)
+            if (node.size >= 0 || node.ResourceXFeed || node.rigid)
             {
                 sb.Append(delim);
                 sb.Append(node.size);
             }
+
+            if (node.ResourceXFeed || node.rigid)
+            {
+                sb.Append(delim);
+                sb.Append(node.ResourceXFeed ? "1" : "0");
+                if (node.rigid)
+                {
+                    sb.Append(delim);
+                    sb.Append(node.rigid ? "1" : "0");
+                }
+            }
+
 
             return new Tuple<string, string>(retKey, sb.ToString());
         }
@@ -1139,7 +1136,7 @@ namespace NodeHelper_ns
             var delim = new[] { "(Clone" };
             var parts = messedupName.Split(delim, StringSplitOptions.None);
 
-            return parts[0];
+            return parts[0].Replace('.', '_');
         }
 
         void _orientNodeToCust()

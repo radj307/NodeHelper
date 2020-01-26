@@ -1,5 +1,12 @@
 ChangeLog
 
+1.5.1.2
+	Added/fixed code to save position of windows
+	Deleted old code for the Blizzy toolbar
+	Thanks to @whale2 for this:
+		Fixed saving data for parts having names with underscores
+	Added support for last two field in an attach node:  Crossfeed and Rigid.  They only get added if not false
+
 1.5.1.1
 	Added ToolbarController
 	Added ClickThroughBlocker
