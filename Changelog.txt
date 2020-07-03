@@ -1,4 +1,6 @@
 ChangeLog
+1.5.1.3
+	Fixed the internal ModuleNMPartInfo (was missing and patch was bad)
 
 1.5.1.2
 	Added/fixed code to save position of windows
