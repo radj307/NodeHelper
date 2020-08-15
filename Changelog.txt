@@ -1,4 +1,10 @@
 ChangeLog
+
+1.5.1.4
+	Thanks to github user @kevinowen for this:
+		Exclude ThrottleControlledAvionics "parts" because ThrottleControlledAvionics uses dummy parts for tech tree unlocks of its modules.
+		Along the same lines, Breaking Ground's deployable parts are now excluded
+
 1.5.1.3
 	Fixed the internal ModuleNMPartInfo (was missing and patch was bad)
 
