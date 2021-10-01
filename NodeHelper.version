@@ -1,7 +1,7 @@
 {
   "NAME": "NodeHelper",
   "URL": "http://ksp.spacetux.net/avc/NodeHelper",
-  "DOWNLOAD": "http://github.com/linuxgurugamer/NodeHelper/Releases",
+  "DOWNLOAD": "http://github.com/linuxgurugamer/NodeHelper/releases",
   "VERSION": {
     "MAJOR": 1,
     "MINOR": 5,
