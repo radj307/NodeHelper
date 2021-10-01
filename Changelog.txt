@@ -1,5 +1,9 @@
 ChangeLog
 
+1.5.1.5
+	Added AssemblyFileVersion
+	Updated version file for 1.12
+
 1.5.1.4
 	Thanks to github user @kevinowen for this:
 		Exclude ThrottleControlledAvionics "parts" because ThrottleControlledAvionics uses dummy parts for tech tree unlocks of its modules.
