@@ -46,8 +46,11 @@ namespace PartInfo
         {
             if (!HighLogic.LoadedSceneIsEditor)
                 Destroy(this);
-            winRect.x = (Screen.width - WIDTH) / 2;
-            winRect.y = (Screen.height - HEIGHT) / 2;
+            else
+            {
+                winRect.x = (Screen.width - WIDTH) / 2;
+                winRect.y = (Screen.height - HEIGHT) / 2;
+            }
         }
         private void OnGUI()
         {
@@ -65,7 +68,7 @@ namespace PartInfo
             winRect.width = size.x + 10;
             GUILayout.TextArea(GetInfo());
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Close)"))
+            if (GUILayout.Button("Close"))
                 isVisible = false;
 
 
@@ -74,8 +77,7 @@ namespace PartInfo
 
             if (GUILayout.Button(str, GUILayout.Width(size.x + 20)))
             {
-                string s = GetInfo();
-                s.CopyToClipboard();
+                GetInfo().CopyToClipboard();
             }
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();

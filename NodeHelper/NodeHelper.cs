@@ -91,9 +91,9 @@ namespace NodeHelper_ns
         //  Need to add code to make sure window isn't off - screen when loading options.
         //  Also need to make sure WindowPos isn't off - screen at start.
 
-         Rect nodeListPos = new Rect(315, 100, 160, 40);
-         Rect windowPos = new Rect(1375, 80, 160, 40);
-         Rect nodeEditPos = new Rect(315, 470, 160, 40);
+        Rect nodeListPos = new Rect(315, 100, 160, 40);
+        Rect windowPos = new Rect(1375, 80, 160, 40);
+        Rect nodeEditPos = new Rect(315, 470, 160, 40);
         Rect oldNodeListPos, oldWindowPos, oldNodeEditPos;
 
         static Vector3 GetGoScaleForNode(AttachNode attachNode)
@@ -216,7 +216,7 @@ namespace NodeHelper_ns
         void SaveOldPositions()
         {
             oldNodeListPos = new Rect(nodeListPos);
-            oldWindowPos =new Rect( windowPos);
+            oldWindowPos = new Rect(windowPos);
             oldNodeEditPos = new Rect(nodeEditPos);
         }
 
@@ -330,42 +330,27 @@ namespace NodeHelper_ns
 
         bool ShouldBeLocked()
         {
-            if (nodeListPos.Contains(new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y)))
-            {
-                return true;
-            }
-
-            if (_selectedPart != null && windowPos.Contains(new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y)))
-            {
-                return true;
-            }
-
-            if (_selectedNode != null && nodeEditPos.Contains(new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y)))
-            {
-                return true;
-            }
-
-            return false;
+            return nodeListPos.Contains(Input.mousePosition) // mouse is over node list window
+                || _selectedPart != null && (windowPos.Contains(Input.mousePosition) || nodeEditPos.Contains(Input.mousePosition)); // mouse is over other context window
         }
 
         void UpdateLock()
         {
-            if (ShouldBeLocked())
+            bool shouldLock = ShouldBeLocked();
+            if (inputLockActive)
             {
-                if (!inputLockActive)
+                if (!shouldLock)
                 {
-                    InputLockManager.SetControlLock(ControlTypes.ALLBUTCAMERAS, inputLock);
-
-                    inputLockActive = true;
+                    InputLockManager.RemoveControlLock(inputLock);
+                    inputLockActive = false;
                 }
             }
             else
             {
-                if (inputLockActive)
+                if (shouldLock)
                 {
-                    InputLockManager.RemoveControlLock(inputLock);
-
-                    inputLockActive = false;
+                    InputLockManager.SetControlLock(ControlTypes.ALLBUTCAMERAS, inputLock);
+                    inputLockActive = true;
                 }
             }
         }
